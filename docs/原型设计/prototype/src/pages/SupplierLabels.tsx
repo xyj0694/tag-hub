@@ -48,7 +48,7 @@ export default function SupplierLabels() {
             <>
               <Alert
                 type="info" showIcon style={{ marginBottom: 16 }}
-                message="平台统一存储箱贴模板，供应商参考打印。平台不提供在线编辑功能，尺寸标注为参考值，不强制限定，微小偏差不影响使用。"
+                title="平台统一存储箱贴模板，供应商参考打印。平台不提供在线编辑功能，尺寸标注为参考值，不强制限定，微小偏差不影响使用。"
               />
 
               <Card>

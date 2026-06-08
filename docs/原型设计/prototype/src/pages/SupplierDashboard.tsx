@@ -40,28 +40,28 @@ export default function SupplierDashboard() {
         <Col xs={24} sm={12} lg={6}>
           <Card hoverable onClick={() => navigate('/supplier/orders')} style={{ borderRadius: 8 }}>
             <Statistic title="待接单" value={pendingAccept} prefix={<ClockCircleOutlined />}
-              valueStyle={{ color: '#fa8c16', fontSize: 26 }} />
+              styles={{ content: {color: '#fa8c16', fontSize: 26} }} />
             <div style={{ marginTop: 8, fontSize: 12 }}><Text type="secondary">需尽快确认</Text></div>
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <Card hoverable onClick={() => navigate('/supplier/orders')} style={{ borderRadius: 8 }}>
             <Statistic title="生产中" value={inProduction} prefix={<SyncOutlined spin />}
-              valueStyle={{ color: '#1677ff', fontSize: 26 }} />
+              styles={{ content: {color: '#1677ff', fontSize: 26} }} />
             <div style={{ marginTop: 8, fontSize: 12 }}><Text type="secondary">累计生产 {totalVolume.toLocaleString()} 张</Text></div>
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <Card hoverable onClick={() => navigate('/supplier/shipment')} style={{ borderRadius: 8 }}>
             <Statistic title="待发货" value={pendingShip} prefix={<SendOutlined />}
-              valueStyle={{ color: '#722ed1', fontSize: 26 }} />
+              styles={{ content: {color: '#722ed1', fontSize: 26} }} />
             <div style={{ marginTop: 8, fontSize: 12 }}><Text type="secondary">已完成生产待发出</Text></div>
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <Card hoverable onClick={() => navigate('/supplier/billings')} style={{ borderRadius: 8 }}>
             <Statistic title="本月已完成" value={shipped} prefix={<CheckCircleOutlined />}
-              valueStyle={{ color: '#52c41a', fontSize: 26 }} />
+              styles={{ content: {color: '#52c41a', fontSize: 26} }} />
             <div style={{ marginTop: 8, fontSize: 12 }}><Text type="secondary">已发货 / 已签收</Text></div>
           </Card>
         </Col>
@@ -95,10 +95,10 @@ export default function SupplierDashboard() {
         <Col xs={24} lg={8}>
           <Card title="最近通知" style={{ borderRadius: 8 }}>
             <Timeline items={[
-              { color: 'orange', dot: <ClockCircleOutlined />, children: <div><Text style={{ fontSize: 13 }}>新订单待接单</Text><br /><Text type="secondary" style={{ fontSize: 11 }}>TH20260605-003-2 · 5万张</Text><br /><Text type="secondary" style={{ fontSize: 11 }}>6月5日 16:15</Text></div> },
-              { color: 'blue', dot: <SyncOutlined />, children: <div><Text style={{ fontSize: 13 }}>EPC数据上传完成</Text><br /><Text type="secondary" style={{ fontSize: 11 }}>TH20260604-002-1 · 校验通过</Text><br /><Text type="secondary" style={{ fontSize: 11 }}>6月5日 09:30</Text></div> },
-              { color: 'purple', dot: <SendOutlined />, children: <div><Text style={{ fontSize: 13 }}>已发货</Text><br /><Text type="secondary" style={{ fontSize: 11 }}>TH20260604-002-1 · 10万张 · 圆通速递</Text><br /><Text type="secondary" style={{ fontSize: 11 }}>6月4日 16:00</Text></div> },
-              { color: 'green', dot: <CheckCircleOutlined />, children: <div><Text style={{ fontSize: 13 }}>订单已签收</Text><br /><Text type="secondary" style={{ fontSize: 11 }}>TH20260531-001-1 · 8万张</Text><br /><Text type="secondary" style={{ fontSize: 11 }}>6月4日 14:00</Text></div> },
+              { color: 'orange', icon: <ClockCircleOutlined />, content: <div><Text style={{ fontSize: 13 }}>新订单待接单</Text><br /><Text type="secondary" style={{ fontSize: 11 }}>TH20260605-003-2 · 5万张</Text><br /><Text type="secondary" style={{ fontSize: 11 }}>6月5日 16:15</Text></div> },
+              { color: 'blue', icon: <SyncOutlined />, content: <div><Text style={{ fontSize: 13 }}>EPC数据上传完成</Text><br /><Text type="secondary" style={{ fontSize: 11 }}>TH20260604-002-1 · 校验通过</Text><br /><Text type="secondary" style={{ fontSize: 11 }}>6月5日 09:30</Text></div> },
+              { color: 'purple', icon: <SendOutlined />, content: <div><Text style={{ fontSize: 13 }}>已发货</Text><br /><Text type="secondary" style={{ fontSize: 11 }}>TH20260604-002-1 · 10万张 · 圆通速递</Text><br /><Text type="secondary" style={{ fontSize: 11 }}>6月4日 16:00</Text></div> },
+              { color: 'green', icon: <CheckCircleOutlined />, content: <div><Text style={{ fontSize: 13 }}>订单已签收</Text><br /><Text type="secondary" style={{ fontSize: 11 }}>TH20260531-001-1 · 8万张</Text><br /><Text type="secondary" style={{ fontSize: 11 }}>6月4日 14:00</Text></div> },
             ]} />
           </Card>
         </Col>

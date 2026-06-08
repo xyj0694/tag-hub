@@ -452,7 +452,7 @@ export default function OpsEpcRules() {
 
       {/* Conflict alert */}
       {conflicts.length > 0 && (
-        <Alert message={`${selectedBrand?.name} 存在 ${conflicts.length} 条 EPC 编码冲突`}
+        <Alert title={`${selectedBrand?.name} 存在 ${conflicts.length} 条 EPC 编码冲突`}
           description={conflicts.map((c, i) => (
             <div key={i} style={{ marginBottom: 4 }}>
               <Text strong>「{c.ruleA.name}」与「{c.ruleB.name}」</Text>：{c.reason}
@@ -462,7 +462,7 @@ export default function OpsEpcRules() {
       )}
 
       {selectedBrandId === 'MISSING' && brandsWithoutRules === 0 && (
-        <Alert message="所有品牌均已配置 EPC 规则" type="success" showIcon style={{ marginBottom: 16, borderRadius: 6 }} />
+        <Alert title="所有品牌均已配置 EPC 规则" type="success" showIcon style={{ marginBottom: 16, borderRadius: 6 }} />
       )}
 
       {/* Toolbar */}
@@ -598,17 +598,17 @@ export default function OpsEpcRules() {
         okText="保存" cancelText="取消" width={640}
       >
         {!editRule && selectedBrand && (
-          <Alert message={`将规则添加到「${selectedBrand.name}」`} type="info" showIcon style={{ marginBottom: 12, borderRadius: 6 }} />
+          <Alert title={`将规则添加到「${selectedBrand.name}」`} type="info" showIcon style={{ marginBottom: 12, borderRadius: 6 }} />
         )}
         {prefixConflictWarn && (
-          <Alert message={prefixConflictWarn} type="warning" showIcon icon={<WarningOutlined />} style={{ marginBottom: 12, borderRadius: 6 }} />
+          <Alert title={prefixConflictWarn} type="warning" showIcon icon={<WarningOutlined />} style={{ marginBottom: 12, borderRadius: 6 }} />
         )}
 
         {/* ---- 配置说明 ---- */}
         <Collapse ghost size="small" style={{ marginBottom: 12, background: token.colorFillQuaternary, borderRadius: 6 }}
           items={[{
             key: 'guide', label: <Text type="secondary" style={{ fontSize: 12 }}>📖 配置说明与样例</Text>,
-            children: (
+            content: (
               <div style={{ fontSize: 12, lineHeight: 1.8, color: token.colorTextSecondary }}>
                 {ruleType === 'SGTIN96' && (<>
                   <Text strong>SGTIN-96（GS1 国际标准，96-bit）</Text>
@@ -936,11 +936,11 @@ export default function OpsEpcRules() {
       </Modal>
 
       {/* ─── Change Log Drawer ─── */}
-      <Drawer title={`变更记录 — ${logRule?.name || ''}`} open={logDrawerOpen} onClose={() => setLogDrawerOpen(false)} width={480}>
+      <Drawer title={`变更记录 — ${logRule?.name || ''}`} open={logDrawerOpen} onClose={() => setLogDrawerOpen(false)} size="large">
         {logs.length === 0 ? <Empty description="暂无变更记录" /> : (
           <Timeline items={logs.map(l => ({
             color: l.action === '新增' ? 'green' : 'blue',
-            children: (
+            content: (
               <div>
                 <Text strong>{l.action === '新增' ? '创建规则' : `修改「${l.field}」`}</Text>
                 <div style={{ marginTop: 2 }}>
@@ -965,7 +965,7 @@ export default function OpsEpcRules() {
       >
         <div style={{ fontSize: 13, lineHeight: 1.9, maxHeight: '60vh', overflow: 'auto', paddingRight: 8 }}>
           <Alert
-            message="本文档面向平台运营人员，帮助快速判断在何种业务场景下选择哪种编码方案，以及如何正确配置。"
+            title="本文档面向平台运营人员，帮助快速判断在何种业务场景下选择哪种编码方案，以及如何正确配置。"
             type="info" showIcon style={{ marginBottom: 20, borderRadius: 6 }}
           />
 

@@ -179,7 +179,7 @@ export default function BrandBillings() {
             </Text>
           </div>
         </Card>
-      ) : (
+      ) : (<>
       <Card style={{ borderRadius: 8 }}>
         {/* 筛选栏 */}
         <Space style={{ marginBottom: 16 }} wrap>
@@ -234,7 +234,7 @@ export default function BrandBillings() {
             type="error"
             showIcon
             icon={<ExclamationCircleOutlined />}
-            message={`您有 ${overdueCount} 条超期未付对账单，金额合计 ¥${overdueAmount.toLocaleString()}.00`}
+            title={`您有 ${overdueCount} 条超期未付对账单，金额合计 ¥${overdueAmount.toLocaleString()}.00`}
             description="超期未付将影响新订单创建，请尽快完成付款或联系平台运营协商。"
             style={{ marginBottom: 16 }}
           />
@@ -405,7 +405,7 @@ export default function BrandBillings() {
               );
             })()}
             {detailOpen.overdue && (
-              <Alert type="error" showIcon message="此对账单已超期未付，请尽快处理以免影响新订单创建。" style={{ marginBottom: 12 }} />
+              <Alert type="error" showIcon title="此对账单已超期未付，请尽快处理以免影响新订单创建。" style={{ marginBottom: 12 }} />
             )}
             <Table
               dataSource={detailOpen.items}
@@ -473,6 +473,7 @@ export default function BrandBillings() {
         )}
       </Modal>
 
+      </>
       )}
 
       {/* 超期行高亮样式 */}

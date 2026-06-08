@@ -708,7 +708,7 @@ const COST_BEARERS = [
           />
         )}
         <Alert type="info" showIcon style={{ marginTop: 10, fontSize: 12, borderRadius: 6 }}
-          message="💡 审核流程：待审核→审核通过（可直接通过或拆单转单）→通知供应商接单。已审核订单可单独拆单。已拆分订单可转供应商。取消/砍单由运营人员自行与品牌方及供应商沟通后操作。" />
+          title="💡 审核流程：待审核→审核通过（可直接通过或拆单转单）→通知供应商接单。已审核订单可单独拆单。已拆分订单可转供应商。取消/砍单由运营人员自行与品牌方及供应商沟通后操作。" />
       </Card>
 
       {/* ═══════════ AUDIT MODAL ═══════════ */}
@@ -846,7 +846,7 @@ const COST_BEARERS = [
               type="info"
               showIcon
               icon={<ThunderboltOutlined />}
-              message="审核指引"
+              title="审核指引"
               description={
                 <div style={{ fontSize: 12 }}>
                   <Text>• 确认品牌方/工厂信息与订单一致，特别注意多品牌客户公司下的品牌归属</Text><br />
@@ -908,7 +908,7 @@ const COST_BEARERS = [
         {auditOrder && splitMode && (
           <>
             <Alert type="info" showIcon
-              message={`拆单转单 — 总数量：${auditOrder.totalQuantity.toLocaleString()} 张${[markFree && '免费单', markUrgent && '加急'].filter(Boolean).join('、') ? '（' + [markFree && '免费单', markUrgent && '加急'].filter(Boolean).join('、') + '）' : ''}`}
+              title={`拆单转单 — 总数量：${auditOrder.totalQuantity.toLocaleString()} 张${[markFree && '免费单', markUrgent && '加急'].filter(Boolean).join('、') ? '（' + [markFree && '免费单', markUrgent && '加急'].filter(Boolean).join('、') + '）' : ''}`}
               style={{ marginBottom: 12 }} />
 
             {/* Keep quantity */}
@@ -1031,7 +1031,7 @@ const COST_BEARERS = [
       <Modal title="驳回订单" open={rejectOpen}
         onCancel={() => { setRejectOpen(false); setRejectReason(''); setRejectFiles([]); }}
         onOk={handleReject} okText="确认驳回" okButtonProps={{ danger: true, disabled: !rejectReason.trim() }} cancelText="取消">
-        <Alert type="warning" showIcon message="驳回后品牌方将收到通知，需修改后重新提交。请务必填写具体原因。" style={{ marginBottom: 12 }} />
+        <Alert type="warning" showIcon title="驳回后品牌方将收到通知，需修改后重新提交。请务必填写具体原因。" style={{ marginBottom: 12 }} />
         <Text strong style={{ display: 'block', marginBottom: 8 }}>驳回原因（必填）：</Text>
         <div style={{ marginBottom: 10, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {REJECT_PRESETS.map(p => (
@@ -1078,7 +1078,7 @@ const COST_BEARERS = [
       <Modal title={`批量驳回（${selectedRowKeys.length} 条）`} open={batchRejectOpen}
         onCancel={() => { setBatchRejectOpen(false); setBatchRejectReason(''); setBatchRejectFiles([]); }}
         onOk={handleBatchReject} okText="确认驳回" okButtonProps={{ danger: true, disabled: !batchRejectReason.trim() }} cancelText="取消">
-        <Alert type="warning" showIcon message="批量驳回将同时通知所有相关品牌方。请确保驳回原因适用于全部选中订单。" style={{ marginBottom: 12 }} />
+        <Alert type="warning" showIcon title="批量驳回将同时通知所有相关品牌方。请确保驳回原因适用于全部选中订单。" style={{ marginBottom: 12 }} />
         <Text strong style={{ display: 'block', marginBottom: 8 }}>驳回原因（必填）：</Text>
         <div style={{ marginBottom: 10, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {REJECT_PRESETS.map(p => (
@@ -1178,10 +1178,10 @@ const COST_BEARERS = [
                     const total = Object.values(reduceSubData).reduce((s: number, v: any) => s + (v.qty || 0), 0);
                     return total > 0 ? (
                       <Alert type="info" showIcon style={{ marginBottom: 12 }}
-                        message={`合计削减 ${total.toLocaleString()} 张（${((total / reduceOrder.totalQuantity) * 100).toFixed(1)}%），剩余 ${(reduceOrder.totalQuantity - total).toLocaleString()} 张`} />
+                        title={`合计削减 ${total.toLocaleString()} 张（${((total / reduceOrder.totalQuantity) * 100).toFixed(1)}%），剩余 ${(reduceOrder.totalQuantity - total).toLocaleString()} 张`} />
                     ) : null;
                   })()}
-                  <Alert type="warning" showIcon message="请与品牌方及供应商线下沟通后执行" style={{ marginBottom: 12 }} />
+                  <Alert type="warning" showIcon title="请与品牌方及供应商线下沟通后执行" style={{ marginBottom: 12 }} />
                   <div style={{ padding: 12, background: '#fffbe6', borderRadius: 6, border: '1px solid #ffe58f' }}>
                     <Text strong style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>💰 成本归因与分摊（按子订单独立配置）</Text>
                     {subs.map((so: any) => {
@@ -1215,7 +1215,7 @@ const COST_BEARERS = [
 
                 </>
               ) : (
-                <Alert type="warning" showIcon message="该订单未拆分，不支持按子订单削减。建议使用取消操作。" style={{ marginBottom: 12 }} />
+                <Alert type="warning" showIcon title="该订单未拆分，不支持按子订单削减。建议使用取消操作。" style={{ marginBottom: 12 }} />
               )}
             </>
           );
@@ -1233,7 +1233,7 @@ const COST_BEARERS = [
           return (
             <>
               {subs.length === 0 ? (
-                <Alert type="info" showIcon message="该订单未拆分，取消将移除整个订单。" style={{ marginBottom: 16 }} />
+                <Alert type="info" showIcon title="该订单未拆分，取消将移除整个订单。" style={{ marginBottom: 16 }} />
               ) : (
                 <>
                   <Descriptions column={2} size="small" bordered style={{ marginBottom: 12 }}>
@@ -1350,7 +1350,7 @@ const COST_BEARERS = [
               {transferSubOrderId && (
                 <>
                   <Alert type="info" showIcon
-                    message={`当前供应商：${currentSub?.supplierName}，数量 ${currentSub?.quantity?.toLocaleString()} 张，状态 ${currentSub?.status}`}
+                    title={`当前供应商：${currentSub?.supplierName}，数量 ${currentSub?.quantity?.toLocaleString()} 张，状态 ${currentSub?.status}`}
                     style={{ marginBottom: 16 }} />
                   <Text strong style={{ display: 'block', marginBottom: 8 }}>目标供应商：</Text>
                   <Select
@@ -1386,7 +1386,7 @@ const COST_BEARERS = [
       >
         <div style={{ fontSize: 13, lineHeight: 1.9, maxHeight: '60vh', overflow: 'auto', paddingRight: 8 }}>
           <Alert
-            message="本文档面向平台运营人员，介绍订单管理的完整操作流程，包括审核、拆单、取消、砍单、转供应商及批量操作。"
+            title="本文档面向平台运营人员，介绍订单管理的完整操作流程，包括审核、拆单、取消、砍单、转供应商及批量操作。"
             type="info" showIcon style={{ marginBottom: 20, borderRadius: 6 }}
           />
 

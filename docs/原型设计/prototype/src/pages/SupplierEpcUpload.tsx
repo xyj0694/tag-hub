@@ -55,16 +55,16 @@ export default function SupplierEpcUpload() {
       <Card style={{ marginBottom: 16, borderRadius: 8 }}>
         <Row gutter={24}>
           <Col span={6}>
-            <Statistic title="订单需求量" value={25000} suffix="条" valueStyle={{ fontSize: 22 }} />
+            <Statistic title="订单需求量" value={25000} suffix="条" styles={{ content: {fontSize: 22} }} />
           </Col>
           <Col span={6}>
-            <Statistic title="+预留（2%）" value={500} suffix="条" valueStyle={{ color: '#fa8c16', fontSize: 22 }} />
+            <Statistic title="+预留（2%）" value={500} suffix="条" styles={{ content: {color: '#fa8c16', fontSize: 22} }} />
           </Col>
           <Col span={6}>
-            <Statistic title="下发给供应商总量" value={25500} suffix="条" valueStyle={{ color: '#1677ff', fontSize: 22 }} />
+            <Statistic title="下发给供应商总量" value={25500} suffix="条" styles={{ content: {color: '#1677ff', fontSize: 22} }} />
           </Col>
           <Col span={6}>
-            <Statistic title="预留比例" value={2} suffix="%（可配置）" valueStyle={{ fontSize: 22 }} />
+            <Statistic title="预留比例" value={2} suffix="%（可配置）" styles={{ content: {fontSize: 22} }} />
           </Col>
         </Row>
       </Card>
@@ -94,9 +94,9 @@ export default function SupplierEpcUpload() {
                 <>
                   <Card style={{ marginBottom: 16 }}>
                     <Row gutter={24}>
-                      <Col span={8}><Statistic title="校验通过" value={result.passed} suffix={`/ ${result.passed + result.failed}`} valueStyle={{ color: '#52c41a', fontSize: 28 }} prefix={<CheckCircleOutlined />} /></Col>
-                      <Col span={8}><Statistic title="校验异常" value={result.failed} valueStyle={{ color: '#ff4d4f', fontSize: 28 }} prefix={<CloseCircleOutlined />} /></Col>
-                      <Col span={8}><Statistic title="总计" value={result.passed + result.failed} valueStyle={{ color: '#1677ff', fontSize: 28 }} /></Col>
+                      <Col span={8}><Statistic title="校验通过" value={result.passed} suffix={`/ ${result.passed + result.failed}`} styles={{ content: {color: '#52c41a', fontSize: 28} }} prefix={<CheckCircleOutlined />} /></Col>
+                      <Col span={8}><Statistic title="校验异常" value={result.failed} styles={{ content: {color: '#ff4d4f', fontSize: 28} }} prefix={<CloseCircleOutlined />} /></Col>
+                      <Col span={8}><Statistic title="总计" value={result.passed + result.failed} styles={{ content: {color: '#1677ff', fontSize: 28} }} /></Col>
                     </Row>
                   </Card>
 
@@ -114,7 +114,7 @@ export default function SupplierEpcUpload() {
                         ]}
                       />
                       <div style={{ marginTop: 16 }}>
-                        <Alert type="error" showIcon message="检测到异常数据，请修正后重新上传。EPC 品牌级全局唯一为系统红线，不可跳过。" />
+                        <Alert type="error" showIcon title="检测到异常数据，请修正后重新上传。EPC 品牌级全局唯一为系统红线，不可跳过。" />
                         <div style={{ marginTop: 12 }}><Space><Button onClick={() => { setUploaded(false); setResult(null); }}>重新上传</Button></Space></div>
                       </div>
                     </Card>
@@ -129,7 +129,7 @@ export default function SupplierEpcUpload() {
           children: (
             <>
               <Alert type="info" showIcon style={{ marginBottom: 16 }}
-                message="生产完成后，请上传实际使用的 EPC 清单。系统将自动对比下发总量，计算作废数量。" />
+                title="生产完成后，请上传实际使用的 EPC 清单。系统将自动对比下发总量，计算作废数量。" />
 
               {!returnUploaded ? (
                 <Card>
@@ -143,10 +143,10 @@ export default function SupplierEpcUpload() {
               ) : returnResult && (
                 <Card title="回传结果">
                   <Row gutter={24} style={{ marginBottom: 16 }}>
-                    <Col span={6}><Statistic title="下发总量" value={returnResult.totalIssued} suffix="条" valueStyle={{ fontSize: 22 }} /></Col>
-                    <Col span={6}><Statistic title="实际使用" value={returnResult.actualUsed} suffix="条" valueStyle={{ color: '#52c41a', fontSize: 22 }} prefix={<CheckCircleOutlined />} /></Col>
-                    <Col span={6}><Statistic title="已作废" value={returnResult.voidCount} suffix="条" valueStyle={{ color: '#ff4d4f', fontSize: 22 }} prefix={<CloseCircleOutlined />} /></Col>
-                    <Col span={6}><Statistic title="作废率" value={(returnResult.voidCount / returnResult.totalIssued * 100).toFixed(1)} suffix="%" valueStyle={{ fontSize: 22 }} /></Col>
+                    <Col span={6}><Statistic title="下发总量" value={returnResult.totalIssued} suffix="条" styles={{ content: {fontSize: 22} }} /></Col>
+                    <Col span={6}><Statistic title="实际使用" value={returnResult.actualUsed} suffix="条" styles={{ content: {color: '#52c41a', fontSize: 22} }} prefix={<CheckCircleOutlined />} /></Col>
+                    <Col span={6}><Statistic title="已作废" value={returnResult.voidCount} suffix="条" styles={{ content: {color: '#ff4d4f', fontSize: 22} }} prefix={<CloseCircleOutlined />} /></Col>
+                    <Col span={6}><Statistic title="作废率" value={(returnResult.voidCount / returnResult.totalIssued * 100).toFixed(1)} suffix="%" styles={{ content: {fontSize: 22} }} /></Col>
                   </Row>
 
                   <Divider />
@@ -161,7 +161,7 @@ export default function SupplierEpcUpload() {
                   </Descriptions>
 
                   <Alert type="success" showIcon style={{ marginTop: 16 }}
-                    message={`${returnResult.voidCount.toLocaleString()} 条多余标签数据已作废，不会流入市场。`} />
+                    title={`${returnResult.voidCount.toLocaleString()} 条多余标签数据已作废，不会流入市场。`} />
 
                   <div style={{ marginTop: 12 }}>
                     <Space>

@@ -93,10 +93,10 @@ export default function OpsOrderDetail() {
           </div>
         </div>
         {isCancelled && (
-          <Alert type="info" showIcon message="此订单已取消" description={order.cancelReason ? `原因：${order.cancelReason}` : undefined} style={{ marginTop: 12 }} />
+          <Alert type="info" showIcon title="此订单已取消" description={order.cancelReason ? `原因：${order.cancelReason}` : undefined} style={{ marginTop: 12 }} />
         )}
         {order.status === '已驳回' && (
-          <Alert type="warning" showIcon message="此订单已驳回"
+          <Alert type="warning" showIcon title="此订单已驳回"
             description={(order.statusLog || []).find((l: any) => l.status === '已驳回')?.detail || '请查看操作记录了解驳回原因'}
             style={{ marginTop: 12 }} />
         )}
@@ -294,7 +294,7 @@ export default function OpsOrderDetail() {
           <Timeline
             items={order.statusLog.map(l => ({
               color: l.status === '已驳回' || l.status === '已取消' ? 'red' : 'gray',
-              children: (
+              content: (
                 <div>
                   <Text style={{ fontSize: 13 }}>{l.status}</Text>
                   <Text type="secondary" style={{ fontSize: 12, marginLeft: 8 }}>{l.operator}</Text>

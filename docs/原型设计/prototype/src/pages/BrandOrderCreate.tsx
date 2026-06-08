@@ -405,7 +405,7 @@ export default function BrandOrderCreate() {
               <Radio.Button value="REPLENISH">补单</Radio.Button>
             </Radio.Group>
           </div>
-          {!tagType && <Alert type="info" showIcon message="请先选择标签类型，下一步填写 SKU 时系统将自动匹配模板" style={{ borderRadius: 6 }} />}
+          {!tagType && <Alert type="info" showIcon title="请先选择标签类型，下一步填写 SKU 时系统将自动匹配模板" style={{ borderRadius: 6 }} />}
         </div>
       );
     }
@@ -427,7 +427,7 @@ export default function BrandOrderCreate() {
           </div>
 
           {importedCount > 0 && (
-            <Alert type="info" showIcon message={`已从 Excel 导入 ${importedCount} 行数据`}
+            <Alert type="info" showIcon title={`已从 Excel 导入 ${importedCount} 行数据`}
               style={{ marginBottom: 16, borderRadius: 6 }} closable onClose={() => setImportedCount(0)} />
           )}
 
@@ -640,11 +640,11 @@ export default function BrandOrderCreate() {
               </div>
             )}
             {createPath === 'instant' && (
-              <Alert type="warning" showIcon message="提交后订单状态为「待补模板」"
+              <Alert type="warning" showIcon title="提交后订单状态为「待补模板」"
                 description="请通知品牌方打单员为以上 SKU 创建标签模板，完成后订单将推送至平台审核。"
                 style={{ marginTop: 16, borderRadius: 6 }} />
             )}
-            {createPath === 'template' && (
+            {createPath === 'template' && (<>
               <div style={{ marginTop: 16, marginBottom: 8 }}>
                 <Text strong style={{ display: 'block', marginBottom: 8, fontSize: 13 }}>唯一码数据来源</Text>
                 <Radio.Group value={dataSource} onChange={e => setDataSource(e.target.value)} optionType="button" buttonStyle="solid" size="small">
@@ -653,11 +653,12 @@ export default function BrandOrderCreate() {
                 </Radio.Group>
                 {dataSource === 'customer' && (
                   <Alert type="warning" showIcon style={{ marginTop: 8 }}
-                    message="选择「客户自导」后，请在「唯一码导入」页面上传数据。" />
+                    title="选择「客户自导」后，请在「唯一码导入」页面上传数据。" />
                 )}
               </div>
-              <Alert type="info" showIcon message="提交后订单状态为「待审核」"
+              <Alert type="info" showIcon title="提交后订单状态为「待审核」"
                 description="平台运营人员将尽快审核您的订单。" style={{ marginTop: 16, borderRadius: 6 }} />
+            </>
             )}
             <Button type="primary" size="large" block style={{ marginTop: 20 }}
               onClick={handleSubmit}

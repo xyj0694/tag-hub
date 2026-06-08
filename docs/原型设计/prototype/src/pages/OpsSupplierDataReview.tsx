@@ -88,25 +88,25 @@ export default function OpsSupplierDataReview(_props: Props) {
         <Col xs={12} sm={6}>
           <Card size="small" style={{ borderRadius: 8, background: token.colorFillQuaternary }}>
             <Statistic title="待审 EPC" value={epcPending}
-              prefix={<FileTextOutlined />} valueStyle={{ color: '#fa8c16', fontSize: 22 }} />
+              prefix={<FileTextOutlined />} styles={{ content: {color: '#fa8c16', fontSize: 22} }} />
           </Card>
         </Col>
         <Col xs={12} sm={6}>
           <Card size="small" style={{ borderRadius: 8, background: token.colorFillQuaternary }}>
             <Statistic title="待审发货" value={shipmentPending}
-              prefix={<SendOutlined />} valueStyle={{ color: '#1677ff', fontSize: 22 }} />
+              prefix={<SendOutlined />} styles={{ content: {color: '#1677ff', fontSize: 22} }} />
           </Card>
         </Col>
         <Col xs={12} sm={6}>
           <Card size="small" style={{ borderRadius: 8, background: '#f6ffed' }}>
             <Statistic title="已通过" value={approvedTotal}
-              prefix={<CheckCircleOutlined />} valueStyle={{ color: '#52c41a', fontSize: 22 }} />
+              prefix={<CheckCircleOutlined />} styles={{ content: {color: '#52c41a', fontSize: 22} }} />
           </Card>
         </Col>
         <Col xs={12} sm={6}>
           <Card size="small" style={{ borderRadius: 8, background: rejectedTotal > 0 ? '#fff2f0' : token.colorFillQuaternary }}>
             <Statistic title="已驳回" value={rejectedTotal}
-              prefix={<CloseCircleOutlined />} valueStyle={{ color: rejectedTotal > 0 ? '#ff4d4f' : undefined, fontSize: 22 }} />
+              prefix={<CloseCircleOutlined />} styles={{ content: {color: rejectedTotal > 0 ? '#ff4d4f' : undefined, fontSize: 22} }} />
           </Card>
         </Col>
       </Row>
@@ -115,7 +115,7 @@ export default function OpsSupplierDataReview(_props: Props) {
       <Alert
         type="info"
         showIcon
-        message="供应商提交的 EPC 数据和发货数据需经平台方审核后，品牌方才能查看。请仔细核对后再通过。"
+        title="供应商提交的 EPC 数据和发货数据需经平台方审核后，品牌方才能查看。请仔细核对后再通过。"
         style={{ marginBottom: 16 }}
       />
 
@@ -317,8 +317,8 @@ export default function OpsSupplierDataReview(_props: Props) {
               <>
                 <Row gutter={16} style={{ marginBottom: 16 }}>
                   <Col span={8}><Statistic title="总数" value={detailOpen.epcTotal} suffix="条" /></Col>
-                  <Col span={8}><Statistic title="通过" value={detailOpen.epcPassed} suffix="条" valueStyle={{ color: '#52c41a' }} /></Col>
-                  <Col span={8}><Statistic title="异常" value={detailOpen.epcFailed} suffix="条" valueStyle={{ color: detailOpen.epcFailed ? '#ff4d4f' : undefined }} /></Col>
+                  <Col span={8}><Statistic title="通过" value={detailOpen.epcPassed} suffix="条" styles={{ content: {color: '#52c41a'} }} /></Col>
+                  <Col span={8}><Statistic title="异常" value={detailOpen.epcFailed} suffix="条" styles={{ content: {color: detailOpen.epcFailed ? '#ff4d4f' : undefined} }} /></Col>
                 </Row>
                 {detailOpen.epcErrors && detailOpen.epcErrors.length > 0 ? (
                   <>
@@ -339,7 +339,7 @@ export default function OpsSupplierDataReview(_props: Props) {
                     />
                   </>
                 ) : (
-                  <Alert type="success" showIcon message="全部 EPC 数据校验通过，无异常。" />
+                  <Alert type="success" showIcon title="全部 EPC 数据校验通过，无异常。" />
                 )}
               </>
             )}
@@ -354,7 +354,7 @@ export default function OpsSupplierDataReview(_props: Props) {
             )}
 
             {detailOpen.rejectReason && (
-              <Alert type="error" showIcon message="驳回原因" description={detailOpen.rejectReason} style={{ marginTop: 16 }} />
+              <Alert type="error" showIcon title="驳回原因" description={detailOpen.rejectReason} style={{ marginTop: 16 }} />
             )}
           </>
         )}

@@ -69,7 +69,7 @@ export default function BrandDashboard() {
               title="待审核"
               value={pendingAudit}
               prefix={<ClockCircleOutlined />}
-              valueStyle={{ color: '#faad14', fontSize: 26 }}
+              styles={{ content: {color: '#faad14', fontSize: 26} }}
             />
             <div style={{ marginTop: 8, fontSize: 12 }}>
               <Text type="secondary">含 {rejected} 条已驳回需重提</Text>
@@ -82,7 +82,7 @@ export default function BrandDashboard() {
               title="生产中"
               value={inProduction}
               prefix={<SyncOutlined spin />}
-              valueStyle={{ color: '#1677ff', fontSize: 26 }}
+              styles={{ content: {color: '#1677ff', fontSize: 26} }}
             />
             <div style={{ marginTop: 8, fontSize: 12 }}>
               <Text type="secondary">{inProduction} 家供应商生产中</Text>
@@ -95,7 +95,7 @@ export default function BrandDashboard() {
               title="运输中"
               value={shipping}
               prefix={<SendOutlined />}
-              valueStyle={{ color: '#722ed1', fontSize: 26 }}
+              styles={{ content: {color: '#722ed1', fontSize: 26} }}
             />
             <div style={{ marginTop: 8, fontSize: 12 }}>
               <Text type="secondary">部分发货 {partialShipping} 条</Text>
@@ -108,7 +108,7 @@ export default function BrandDashboard() {
               title="待对账"
               value={signed}
               prefix={<FileTextOutlined />}
-              valueStyle={{ color: '#52c41a', fontSize: 26 }}
+              styles={{ content: {color: '#52c41a', fontSize: 26} }}
             />
             <div style={{ marginTop: 8, fontSize: 12 }}>
               <Text type="secondary">本月 {signed} 条已签收待对账</Text>
@@ -179,8 +179,8 @@ export default function BrandDashboard() {
                   : a.status.includes('签收') ? 'green'
                   : a.status.includes('审核') ? 'orange'
                   : 'blue',
-                dot: activityIcon(a.status),
-                children: (
+                icon: activityIcon(a.status),
+                content: (
                   <div>
                     <Text style={{ fontSize: 12 }}>{a.orderNo}</Text>
                     <Text style={{ fontSize: 12, marginLeft: 6 }}>{a.status}</Text>

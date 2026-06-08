@@ -95,7 +95,7 @@ export default function BrandOrderDetail() {
           <Alert
             type={order.status === '已驳回' ? 'warning' : 'info'}
             showIcon
-            message={order.status === '已驳回' ? '订单已被驳回' : '订单已取消'}
+            title={order.status === '已驳回' ? '订单已被驳回' : '订单已取消'}
             description={order.cancelReason || '无'}
             style={{ marginTop: 12 }}
           />
@@ -110,7 +110,7 @@ export default function BrandOrderDetail() {
             return {
               color: isBad ? 'red' : 'gray',
               dot: isBad ? <CloseCircleOutlined /> : <ClockCircleOutlined />,
-              children: (
+              content: (
                 <div>
                   <Text style={{ fontSize: 13 }}>{l.status} — {l.operator}</Text>
                   <br />
@@ -387,7 +387,7 @@ export default function BrandOrderDetail() {
         onOk={() => { message.warning('订单已取消（演示）'); setCancelOpen(false); }}
         okText="确认取消" okButtonProps={{ danger: true }}
       >
-        <Alert type="warning" showIcon message="此操作将取消整笔订单，已通知的供应商将收到取消通知。已生产部分将按实际结算。" style={{ marginBottom: 12 }} />
+        <Alert type="warning" showIcon title="此操作将取消整笔订单，已通知的供应商将收到取消通知。已生产部分将按实际结算。" style={{ marginBottom: 12 }} />
         <Text>取消原因：</Text>
         <Select style={{ width: '100%', marginTop: 8 }} placeholder="请选择取消原因" options={[
           { value: '1', label: '业务变更' },

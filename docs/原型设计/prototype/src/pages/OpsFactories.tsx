@@ -301,7 +301,7 @@ export default function OpsFactories() {
       >
         {!editFactory && (
           <Alert
-            message="账号激活说明"
+            title="账号激活说明"
             description="提交后系统将自动生成初始密码，通过短信和邮件发送至联系人。工厂首次登录须修改密码。若 7 天内未激活，可在此页面重新发送激活通知。"
             type="info"
             showIcon

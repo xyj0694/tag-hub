@@ -404,7 +404,7 @@ function PropertiesPanel({
   }
 
   items.push({ key: 'actions', label: <Text strong style={{fontSize:12}}>操作</Text>, children: (
-    <Space direction="vertical" style={{width:'100%'}}>
+    <Space orientation="vertical" style={{width:'100%'}}>
       <Button block size="small" icon={<CopyOutlined/>} onClick={()=>{const newEl:DesignElement={...el,id:uid(),x:Math.min(el.x+5,design.width-el.width),y:Math.min(el.y+5,design.height-el.height)};setElements([...elements,newEl]);}}>复制元素</Button>
       <Button block size="small" danger icon={<DeleteOutlined/>} onClick={()=>setElements(elements.filter(e=>e.id!==el.id))}>删除元素</Button>
     </Space>
@@ -696,7 +696,7 @@ export default function TemplateDesigner() {
           <div style={{padding:12,overflowY:'auto',flex:1}}>
             <Text strong style={{fontSize:12,display:'block',marginBottom:4}}>元素面板</Text>
             <Text type="secondary" style={{fontSize:10,display:'block',marginBottom:10}}>点击添加到画布</Text>
-            <Space direction="vertical" style={{width:'100%'}} size={4}>
+            <Space orientation="vertical" style={{width:'100%'}} size={4}>
               {[
                 {type:'text' as ElementType,icon:<FontSizeOutlined/>,label:'文本',desc:'文字/字段绑定'},
                 {type:'barcode' as ElementType,icon:<BarcodeOutlined/>,label:'条码',desc:'一维条形码'},

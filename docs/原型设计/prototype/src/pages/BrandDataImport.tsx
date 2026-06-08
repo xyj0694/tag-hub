@@ -129,10 +129,10 @@ export default function BrandDataImport() {
             <Card style={{ borderRadius: 8, marginBottom: 16 }} title="流水号段配置">
               <Alert
                 type="info" showIcon
-                message="输入固定前缀和起止流水号，系统将按规则生成全部唯一码。适用于存量标签补货等不需要完整编码的场景。"
+                title="输入固定前缀和起止流水号，系统将按规则生成全部唯一码。适用于存量标签补货等不需要完整编码的场景。"
                 style={{ marginBottom: 16 }}
               />
-              <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+              <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
                 <div>
                   <Text strong style={{ display: 'block', marginBottom: 4 }}>编码前缀</Text>
                   <Input
@@ -167,13 +167,13 @@ export default function BrandDataImport() {
             <Card style={{ borderRadius: 8, marginBottom: 16 }}>
               <Row gutter={16} style={{ marginBottom: 16 }}>
                 <Col span={8}><Statistic title="总条数" value={preview.length} suffix="条" /></Col>
-                <Col span={8}><Statistic title="有效" value={validCount} valueStyle={{ color: '#52c41a' }} prefix={<CheckCircleOutlined />} /></Col>
-                <Col span={8}><Statistic title="异常" value={invalidCount} valueStyle={{ color: invalidCount > 0 ? '#ff4d4f' : undefined }} prefix={<CloseCircleOutlined />} /></Col>
+                <Col span={8}><Statistic title="有效" value={validCount} styles={{ content: {color: '#52c41a'} }} prefix={<CheckCircleOutlined />} /></Col>
+                <Col span={8}><Statistic title="异常" value={invalidCount} styles={{ content: {color: invalidCount > 0 ? '#ff4d4f' : undefined} }} prefix={<CloseCircleOutlined />} /></Col>
               </Row>
 
               {mode === 'range' && (
                 <Alert type="info" showIcon style={{ marginBottom: 12 }}
-                  message={`预览前 ${Math.min(preview.length, 10)} 条，共 ${(seqEnd || 0) - (seqStart || 0) + 1} 条待生成`} />
+                  title={`预览前 ${Math.min(preview.length, 10)} 条，共 ${(seqEnd || 0) - (seqStart || 0) + 1} 条待生成`} />
               )}
 
               <Table

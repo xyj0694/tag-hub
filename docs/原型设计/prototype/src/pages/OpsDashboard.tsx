@@ -33,8 +33,8 @@ function getRecentActivity() {
       : isApprove ? <CheckCircleOutlined />
       : <ClockCircleOutlined />;
     return {
-      color, dot,
-      children: (
+      color, icon: dot,
+      content: (
         <div>
           <Text style={{ fontSize: 12 }}>{l.orderNo} · {l.status}</Text>
           <br />
@@ -78,7 +78,7 @@ export default function OpsDashboard() {
           <Card hoverable onClick={() => navigate('/ops/audit')} style={{ borderRadius: 8 }}>
             <Statistic
               title="待审核订单" value={pendingAudit}
-              prefix={<AuditOutlined />} valueStyle={{ color: '#ff4d4f', fontSize: 26 }}
+              prefix={<AuditOutlined />} styles={{ content: {color: '#ff4d4f', fontSize: 26} }}
             />
             <div style={{ marginTop: 8, fontSize: 12 }}>
               <RiseOutlined style={{ color: '#ff4d4f' }} />
@@ -90,7 +90,7 @@ export default function OpsDashboard() {
           <Card hoverable onClick={() => navigate('/ops/audit')} style={{ borderRadius: 8 }}>
             <Statistic
               title="今日转单" value={todaySplit}
-              prefix={<SendOutlined />} valueStyle={{ color: '#1677ff', fontSize: 26 }}
+              prefix={<SendOutlined />} styles={{ content: {color: '#1677ff', fontSize: 26} }}
             />
             <div style={{ marginTop: 8, fontSize: 12 }}>
               <Text type="secondary">共拆分为 21 个子订单</Text>
@@ -101,7 +101,7 @@ export default function OpsDashboard() {
           <Card hoverable onClick={() => navigate('/ops/audit')} style={{ borderRadius: 8 }}>
             <Statistic
               title="异常订单" value={abnormal}
-              prefix={<WarningOutlined />} valueStyle={{ color: '#fa8c16', fontSize: 26 }}
+              prefix={<WarningOutlined />} styles={{ content: {color: '#fa8c16', fontSize: 26} }}
             />
             <div style={{ marginTop: 8, fontSize: 12 }}>
               <Text type="secondary">含 {rejected} 条驳回 {abnormal - rejected} 条取消</Text>
@@ -112,7 +112,7 @@ export default function OpsDashboard() {
           <Card hoverable onClick={() => navigate('/ops/suppliers')} style={{ borderRadius: 8 }}>
             <Statistic
               title="活跃供应商" value={activeSuppliers}
-              prefix={<TeamOutlined />} valueStyle={{ color: '#52c41a', fontSize: 26 }}
+              prefix={<TeamOutlined />} styles={{ content: {color: '#52c41a', fontSize: 26} }}
             />
             <div style={{ marginTop: 8, fontSize: 12 }}>
               <Text type="secondary">共 8 家供应商，1 家已停用</Text>
@@ -149,7 +149,7 @@ export default function OpsDashboard() {
           <Card
             title="全平台动态"
             style={{ borderRadius: 8 }}
-            bodyStyle={{ maxHeight: 217, overflowY: 'auto', padding: '12px 24px' }}
+            styles={{ body: {maxHeight: 217, overflowY: 'auto', padding: '12px 24px'} }}
           >
             <Timeline items={activityItems} />
           </Card>

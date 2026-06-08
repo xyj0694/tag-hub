@@ -233,7 +233,7 @@ export default function OpsBillings() {
             type="error"
             showIcon
             icon={<ExclamationCircleOutlined />}
-            message={`有 ${overdueCount} 条超期未付对账单，金额合计 ¥${overdueAmount.toLocaleString()}.00`}
+            title={`有 ${overdueCount} 条超期未付对账单，金额合计 ¥${overdueAmount.toLocaleString()}.00`}
             description="超期未付将影响供应商合作关系，请尽快安排付款。"
             style={{ marginBottom: 16 }}
           />
@@ -398,7 +398,7 @@ export default function OpsBillings() {
                 </div>
               </div>
               {detailOpen.overdue && (
-                <Alert type="error" showIcon message="此对账单已超期未付，请尽快安排付款。" style={{ marginBottom: 12 }} />
+                <Alert type="error" showIcon title="此对账单已超期未付，请尽快安排付款。" style={{ marginBottom: 12 }} />
               )}
               <Table
                 dataSource={items}

@@ -326,7 +326,7 @@ export default function SupplierBillings() {
                 </div>
               </div>
               {detailOpen.overdue && (
-                <Alert type="error" showIcon message="此对账单已超期未付，请联系平台方尽快安排付款。" style={{ marginBottom: 12 }} />
+                <Alert type="error" showIcon title="此对账单已超期未付，请联系平台方尽快安排付款。" style={{ marginBottom: 12 }} />
               )}
               <Table
                 dataSource={items}

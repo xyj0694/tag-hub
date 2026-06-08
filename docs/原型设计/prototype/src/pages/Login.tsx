@@ -134,7 +134,7 @@ export default function Login() {
             <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 10 }}>
               💡 演示环境 · 点击快速登录
             </Text>
-            <Space direction="vertical" style={{ width: '100%' }} size={6}>
+            <Space orientation="vertical" style={{ width: '100%' }} size={6}>
               {Object.entries(demoAccounts).map(([role, acct]) => (
                 <Button
                   key={role}
