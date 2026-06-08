@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Card, Table, Button, Tag, Select, DatePicker, Space, Typography, Input, Popconfirm, message } from 'antd';
 import { DownloadOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { orders as mockOrders } from '../data/mock';
+import { orders as mockOrders, purchaserAccounts } from '../data/mock';
 import { useBrandContext } from '../data/BrandContext';
 import type { Order } from '../data/mock';
 import dayjs from 'dayjs';
@@ -39,6 +39,7 @@ export default function BrandOrderList() {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(null);
   const [searchText, setSearchText] = useState('');
+  const [purchaserFilter, setPurchaserFilter] = useState<string>('all');
 
   // 取消订单
   const handleCancel = (orderId: number) => {
@@ -75,6 +76,11 @@ export default function BrandOrderList() {
       });
     }
 
+    // 采购人
+    if (purchaserFilter !== 'all') {
+      list = list.filter(o => o.createdBy === purchaserFilter);
+    }
+
     // 搜索
     if (searchText.trim()) {
       const q = searchText.trim().toLowerCase();
@@ -88,7 +94,7 @@ export default function BrandOrderList() {
     list.sort((a, b) => dayjs(b.createdAt).valueOf() - dayjs(a.createdAt).valueOf());
 
     return list;
-  }, [orders, currentBrandId, currentBrandName, statusFilter, typeFilter, dateRange, searchText]);
+  }, [orders, currentBrandId, currentBrandName, statusFilter, typeFilter, dateRange, searchText, purchaserFilter]);
 
   const handleExport = () => {
     message.success(`已导出 ${filteredOrders.length} 条订单列表数据（模拟）
@@ -103,7 +109,8 @@ export default function BrandOrderList() {
       ),
     },
     { title: '品牌', dataIndex: 'brandName', key: 'brand', width: 150, ellipsis: true },
-    { title: '工厂', dataIndex: 'factoryName', key: 'factory', width: 120, ellipsis: true },
+    { title: '工厂', dataIndex: 'factoryName', key: 'factory', width: 100, ellipsis: true },
+    { title: '下单人', dataIndex: 'createdBy', key: 'createdBy', width: 120, ellipsis: true, render: (t: string) => t ? <Text type="secondary" style={{ fontSize: 12 }}>{t}</Text> : <Text type="secondary">—</Text> },
     { title: '类型', dataIndex: 'type', key: 'type', width: 70, render: (t: string) => <Tag color={typeColors[t] || 'default'}>{t}</Tag> },
     { title: '标签类型', dataIndex: 'tagType', key: 'tagType', width: 120 },
     {
@@ -167,6 +174,11 @@ export default function BrandOrderList() {
               { value: 'all', label: '全部状态' },
               ...Object.entries(statusMap).map(([k, v]) => ({ value: k, label: v.text })),
             ]} />
+          <Select placeholder="采购人" style={{ width: 160 }} value={purchaserFilter} onChange={setPurchaserFilter}
+            options={[
+              { value: 'all', label: '全部采购人' },
+              ...purchaserAccounts.map(p => ({ value: p.name, label: p.name })),
+            ]} />
           <Select placeholder="全部类型" style={{ width: 110 }} value={typeFilter} onChange={setTypeFilter}
             options={[
               { value: 'all', label: '全部类型' },
@@ -178,7 +190,7 @@ export default function BrandOrderList() {
             value={dateRange}
             onChange={v => setDateRange(v as [dayjs.Dayjs, dayjs.Dayjs] | null)}
           />
-          <Button onClick={() => { setStatusFilter('all'); setTypeFilter('all'); setDateRange(null); setSearchText(''); }}>
+          <Button onClick={() => { setStatusFilter('all'); setTypeFilter('all'); setPurchaserFilter('all'); setDateRange(null); setSearchText(''); }}>
             重置筛选
           </Button>
         </Space>

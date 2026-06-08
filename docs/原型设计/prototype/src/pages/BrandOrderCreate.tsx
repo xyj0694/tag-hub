@@ -227,6 +227,7 @@ export default function BrandOrderCreate() {
   const [current, setCurrent] = useState(0);
   const [tagType, setTagType] = useState<string | undefined>();
   const [orderType, setOrderType] = useState<OrderType>('NORMAL');
+  const [dataSource, setDataSource] = useState<'platform' | 'customer'>('platform');
 
   // skuRows state 仅用于校验和提交，不在输入过程中更新
   const [skuRows, setSkuRows] = useState<SkuRow[]>([]);
@@ -644,6 +645,17 @@ export default function BrandOrderCreate() {
                 style={{ marginTop: 16, borderRadius: 6 }} />
             )}
             {createPath === 'template' && (
+              <div style={{ marginTop: 16, marginBottom: 8 }}>
+                <Text strong style={{ display: 'block', marginBottom: 8, fontSize: 13 }}>唯一码数据来源</Text>
+                <Radio.Group value={dataSource} onChange={e => setDataSource(e.target.value)} optionType="button" buttonStyle="solid" size="small">
+                  <Radio.Button value="platform">平台生成</Radio.Button>
+                  <Radio.Button value="customer">客户自导</Radio.Button>
+                </Radio.Group>
+                {dataSource === 'customer' && (
+                  <Alert type="warning" showIcon style={{ marginTop: 8 }}
+                    message="选择「客户自导」后，请在「唯一码导入」页面上传数据。" />
+                )}
+              </div>
               <Alert type="info" showIcon message="提交后订单状态为「待审核」"
                 description="平台运营人员将尽快审核您的订单。" style={{ marginTop: 16, borderRadius: 6 }} />
             )}

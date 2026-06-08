@@ -80,6 +80,7 @@ export default function MainLayout({ role, roleName, brands, currentBrandId, all
         },
         { key: '/brand/templates', icon: <AppstoreOutlined />, label: t('nav.templates') },
         { key: '/brand/factories', icon: <TeamOutlined />, label: t('nav.factories') },
+        { key: '/brand/data-import', icon: <UploadOutlined />, label: '唯一码导入' },
         { key: '/brand/billings', icon: <DollarOutlined />, label: t('nav.billings') },
       ],
       ops: [

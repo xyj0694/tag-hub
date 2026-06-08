@@ -1,13 +1,13 @@
 import { useState, useMemo } from 'react';
-import { Card, Table, Tag, Input, Typography, theme } from 'antd';
-import { CheckCircleOutlined, ClockCircleOutlined, StopOutlined } from '@ant-design/icons';
-import { factories } from '../data/mock';
-import type { Factory } from '../data/mock';
+import { Card, Table, Tag, Input, Typography, Tabs, Switch, Space, Badge, theme } from 'antd';
+import { CheckCircleOutlined, ClockCircleOutlined, StopOutlined, TeamOutlined, BankOutlined, UserOutlined } from '@ant-design/icons';
+import { factories, purchaserAccounts } from '../data/mock';
+import type { Factory, PurchaserAccount } from '../data/mock';
 import { useBrandContext } from '../data/BrandContext';
 
 const { Title, Text } = Typography;
 
-const statusMap: Record<string, { color: string; text: string; icon?: React.ReactNode }> = {
+const factoryStatusMap: Record<string, { color: string; text: string; icon?: React.ReactNode }> = {
   '启用': { color: 'green', text: '已激活', icon: <CheckCircleOutlined /> },
   '未激活': { color: 'orange', text: '未激活', icon: <ClockCircleOutlined /> },
   '停用': { color: 'default', text: '已停用', icon: <StopOutlined /> },
@@ -17,9 +17,10 @@ export default function BrandFactories() {
   const { token } = theme.useToken();
   const { currentBrandId, currentBrandName } = useBrandContext();
   const [search, setSearch] = useState('');
+  const [activeTab, setActiveTab] = useState<string>('factories');
 
-  // 品牌过滤 + 搜索
-  const filtered = useMemo(() => {
+  // 工厂过滤
+  const filteredFactories = useMemo(() => {
     let list: Factory[] = [...factories];
     if (currentBrandId !== 0) {
       list = list.filter(f => f.brandName === currentBrandName);
@@ -31,68 +32,146 @@ export default function BrandFactories() {
     return list;
   }, [currentBrandId, currentBrandName, search]);
 
-  const totalCount = filtered.length;
-  const activeCount = filtered.filter(f => f.status === '启用').length;
-  const pendingCount = filtered.filter(f => f.status === '未激活').length;
-  const disabledCount = filtered.filter(f => f.status === '停用').length;
+  // 采购账号过滤
+  const filteredPurchasers = useMemo(() => {
+    let list = [...purchaserAccounts];
+    if (currentBrandId !== 0) {
+      list = list.filter(p => p.brandId === currentBrandId);
+    }
+    if (search) {
+      const q = search.toLowerCase();
+      list = list.filter(p => p.name.includes(q) || p.phone.includes(q));
+    }
+    return list;
+  }, [currentBrandId, search]);
 
   return (
     <div>
-      <Title level={4} style={{ margin: '0 0 16px' }}>我的合作工厂</Title>
+      <Title level={4} style={{ margin: '0 0 16px' }}>组织管理</Title>
 
       <Card style={{ borderRadius: 8 }}>
-        <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
-          <div style={{ flex: 1, minWidth: 120, background: token.colorFillQuaternary, borderRadius: 8, padding: '10px 14px' }}>
-            <Text type="secondary" style={{ fontSize: 12 }}>工厂总数</Text>
-            <br /><Text strong style={{ fontSize: 18 }}>{totalCount}</Text>
-          </div>
-          <div style={{ flex: 1, minWidth: 120, background: '#f6ffed', borderRadius: 8, padding: '10px 14px', border: '1px solid #b7eb8f' }}>
-            <Text type="secondary" style={{ fontSize: 12, color: '#52c41a' }}>已激活</Text>
-            <br /><Text strong style={{ fontSize: 18, color: '#52c41a' }}>{activeCount}</Text>
-          </div>
-          <div style={{ flex: 1, minWidth: 120, background: '#fff7e6', borderRadius: 8, padding: '10px 14px', border: '1px solid #ffd591' }}>
-            <Text type="secondary" style={{ fontSize: 12, color: '#fa8c16' }}>未激活</Text>
-            <br /><Text strong style={{ fontSize: 18, color: '#fa8c16' }}>{pendingCount}</Text>
-          </div>
-          <div style={{ flex: 1, minWidth: 120, background: token.colorFillQuaternary, borderRadius: 8, padding: '10px 14px' }}>
-            <Text type="secondary" style={{ fontSize: 12 }}>已停用</Text>
-            <br /><Text strong style={{ fontSize: 18 }}>{disabledCount}</Text>
-          </div>
-        </div>
-
-        <Input.Search placeholder="搜索工厂名称、联系人或手机号" style={{ width: 300, marginBottom: 16 }} value={search} onChange={e => setSearch(e.target.value)} allowClear />
-
-        <Text type="secondary" style={{ display: 'block', marginBottom: 10, fontSize: 12 }}>共 {filtered.length} 个工厂</Text>
-
-        <Table
-          dataSource={filtered}
-          rowKey="id"
-          size="middle"
-          pagination={{ pageSize: 10, showTotal: t => '共 ' + t + ' 条', showSizeChanger: true, pageSizeOptions: ['10', '20', '50'] }}
-          columns={[
-            { title: '工厂名称', dataIndex: 'name', width: 150, ellipsis: true },
+        <Tabs
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          items={[
             {
-              title: '状态', dataIndex: 'status', width: 90,
-              render: (s: string) => {
-                const m = statusMap[s] || { color: 'default', text: s };
-                return <Tag color={m.color} icon={m.icon}>{m.text}</Tag>;
-              },
-            },
-            { title: '联系人', dataIndex: 'contact', width: 80 },
-            { title: '手机号', dataIndex: 'phone', width: 110 },
-            { title: '邮箱', dataIndex: 'email', width: 180, ellipsis: true },
-            { title: '地址', dataIndex: 'address', ellipsis: true, width: 200 },
-            {
-              title: '订单数', dataIndex: 'orderCount', width: 70, align: 'right' as const,
-              render: (v: number) => v > 0 ? <Text strong>{v.toLocaleString()}</Text> : <Text type="secondary">—</Text>,
-              sorter: (a: Factory, b: Factory) => a.orderCount - b.orderCount,
+              key: 'factories',
+              label: <span><BankOutlined /> 工厂管理 <Badge count={filteredFactories.length} size="small" style={{ marginLeft: 8 }} /></span>,
             },
             {
-              title: '最近登录', dataIndex: 'lastLoginAt', width: 130,
-              render: (t: string) => <Text type="secondary" style={{ fontSize: 12 }}>{t}</Text>,
+              key: 'purchasers',
+              label: <span><UserOutlined /> 采购账号 <Badge count={filteredPurchasers.length} size="small" style={{ marginLeft: 8 }} /></span>,
             },
           ]}
         />
+
+        <Input.Search placeholder={activeTab === 'factories' ? '搜索工厂名称、联系人或手机号' : '搜索采购姓名或手机号'}
+          style={{ width: 300, marginBottom: 16 }} value={search} onChange={e => setSearch(e.target.value)} allowClear />
+
+        {activeTab === 'factories' ? (
+          <>
+            <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: 120, background: token.colorFillQuaternary, borderRadius: 8, padding: '10px 14px' }}>
+                <Text type="secondary" style={{ fontSize: 12 }}>工厂总数</Text>
+                <br /><Text strong style={{ fontSize: 18 }}>{filteredFactories.length}</Text>
+              </div>
+              <div style={{ flex: 1, minWidth: 120, background: '#f6ffed', borderRadius: 8, padding: '10px 14px', border: '1px solid #b7eb8f' }}>
+                <Text type="secondary" style={{ fontSize: 12, color: '#52c41a' }}>已激活</Text>
+                <br /><Text strong style={{ fontSize: 18, color: '#52c41a' }}>{filteredFactories.filter(f => f.status === '启用').length}</Text>
+              </div>
+              <div style={{ flex: 1, minWidth: 120, background: '#fff7e6', borderRadius: 8, padding: '10px 14px', border: '1px solid #ffd591' }}>
+                <Text type="secondary" style={{ fontSize: 12, color: '#fa8c16' }}>未激活</Text>
+                <br /><Text strong style={{ fontSize: 18, color: '#fa8c16' }}>{filteredFactories.filter(f => f.status === '未激活').length}</Text>
+              </div>
+              <div style={{ flex: 1, minWidth: 120, background: token.colorFillQuaternary, borderRadius: 8, padding: '10px 14px' }}>
+                <Text type="secondary" style={{ fontSize: 12 }}>已停用</Text>
+                <br /><Text strong style={{ fontSize: 18 }}>{filteredFactories.filter(f => f.status === '停用').length}</Text>
+              </div>
+            </div>
+
+            <Text type="secondary" style={{ display: 'block', marginBottom: 10, fontSize: 12 }}>共 {filteredFactories.length} 个工厂</Text>
+
+            <Table
+              dataSource={filteredFactories}
+              rowKey="id"
+              size="middle"
+              pagination={{ pageSize: 10, showTotal: t => `共 ${t} 条`, showSizeChanger: true, pageSizeOptions: ['10', '20', '50'] }}
+              columns={[
+                { title: '工厂名称', dataIndex: 'name', width: 150, ellipsis: true },
+                { title: '状态', dataIndex: 'status', width: 90, render: (s: string) => {
+                  const m = factoryStatusMap[s] || { color: 'default', text: s };
+                  return <Tag color={m.color} icon={m.icon}>{m.text}</Tag>;
+                }},
+                { title: '联系人', dataIndex: 'contact', width: 80 },
+                { title: '手机号', dataIndex: 'phone', width: 110 },
+                { title: '邮箱', dataIndex: 'email', width: 180, ellipsis: true },
+                { title: '地址', dataIndex: 'address', ellipsis: true, width: 200 },
+                { title: '订单数', dataIndex: 'orderCount', width: 70, align: 'right' as const,
+                  render: (v: number) => v > 0 ? <Text strong>{v.toLocaleString()}</Text> : <Text type="secondary">—</Text>,
+                  sorter: (a: Factory, b: Factory) => a.orderCount - b.orderCount,
+                },
+                { title: '最近登录', dataIndex: 'lastLoginAt', width: 130,
+                  render: (t: string) => <Text type="secondary" style={{ fontSize: 12 }}>{t}</Text>,
+                },
+              ]}
+            />
+          </>
+        ) : (
+          <>
+            <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: 120, background: token.colorFillQuaternary, borderRadius: 8, padding: '10px 14px' }}>
+                <Text type="secondary" style={{ fontSize: 12 }}>采购账号总数</Text>
+                <br /><Text strong style={{ fontSize: 18 }}>{filteredPurchasers.length}</Text>
+              </div>
+              <div style={{ flex: 1, minWidth: 120, background: '#f6ffed', borderRadius: 8, padding: '10px 14px', border: '1px solid #b7eb8f' }}>
+                <Text type="secondary" style={{ fontSize: 12, color: '#52c41a' }}>允许对账</Text>
+                <br /><Text strong style={{ fontSize: 18, color: '#52c41a' }}>{filteredPurchasers.filter(p => p.allowBilling).length}</Text>
+              </div>
+              <div style={{ flex: 1, minWidth: 120, background: '#fff7e6', borderRadius: 8, padding: '10px 14px', border: '1px solid #ffd591' }}>
+                <Text type="secondary" style={{ fontSize: 12, color: '#fa8c16' }}>禁止对账</Text>
+                <br /><Text strong style={{ fontSize: 18, color: '#fa8c16' }}>{filteredPurchasers.filter(p => !p.allowBilling).length}</Text>
+              </div>
+            </div>
+
+            <Text type="secondary" style={{ display: 'block', marginBottom: 10, fontSize: 12 }}>共 {filteredPurchasers.length} 个采购账号</Text>
+
+            <Table
+              dataSource={filteredPurchasers}
+              rowKey="id"
+              size="middle"
+              pagination={{ pageSize: 10, showTotal: t => `共 ${t} 条`, showSizeChanger: true, pageSizeOptions: ['10', '20', '50'] }}
+              columns={[
+                { title: '姓名', dataIndex: 'name', width: 160, render: (t: string) => <Space><UserOutlined /><Text strong>{t}</Text></Space> },
+                { title: '手机号', dataIndex: 'phone', width: 120 },
+                {
+                  title: '角色', dataIndex: 'role', width: 80,
+                  render: (r: string) => r === 'admin' ? <Tag color="blue">主账号</Tag> : <Tag color="cyan">子采购</Tag>,
+                },
+                {
+                  title: '对账权限', dataIndex: 'allowBilling', width: 120,
+                  render: (v: boolean) => (
+                    <Space>
+                      <Switch checked={v} size="small" />
+                      <Text type={v ? 'success' : 'secondary'} style={{ fontSize: 12 }}>{v ? '允许' : '禁止'}</Text>
+                    </Space>
+                  ),
+                },
+                {
+                  title: '说明', width: 300,
+                  render: (_: any, r: PurchaserAccount) => (
+                    <Text type="secondary" style={{ fontSize: 12 }}>
+                      {r.role === 'admin'
+                        ? '可查看全部订单和对账单'
+                        : r.allowBilling
+                          ? '可查看本人订单 + 访问对账页'
+                          : '仅可查看本人订单，无权访问对账页'}
+                    </Text>
+                  ),
+                },
+              ]}
+            />
+          </>
+        )}
       </Card>
     </div>
   );

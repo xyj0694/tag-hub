@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Card, Table, Button, Tag, DatePicker, Space, Typography, message, Select, Modal, Popconfirm, Popover, Alert, theme } from 'antd';
 import { DownloadOutlined, EyeOutlined, FilePdfOutlined, FileImageOutlined, PaperClipOutlined, CheckCircleOutlined, ExclamationCircleOutlined, ClockCircleOutlined, PrinterOutlined } from '@ant-design/icons';
-import { brandBillings as mockBillings } from '../data/mock';
+import { brandBillings as mockBillings, purchaserAccounts } from '../data/mock';
 import { useBrandContext } from '../data/BrandContext';
 import type { BillingItem, BillingDetailItem } from '../data/mock';
 
@@ -25,6 +25,9 @@ export default function BrandBillings() {
   const [billings, setBillings] = useState<BillingItem[]>(mockBillings);
   const [detailOpen, setDetailOpen] = useState<BillingItem | null>(null);
   const [previewFile, setPreviewFile] = useState<{ name: string; type: 'image' | 'pdf' } | null>(null);
+  const [simulatedUser, setSimulatedUser] = useState<string>('admin');
+  const currentPurchaser = simulatedUser === 'admin' ? null : purchaserAccounts.find(p => p.name === simulatedUser);
+  const hasBillingAccess = simulatedUser === 'admin' || (currentPurchaser?.allowBilling ?? false);
 
   // 过滤
   const filteredBillings = useMemo(() => {
@@ -148,9 +151,35 @@ export default function BrandBillings() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <Title level={4} style={{ margin: 0 }}>对账管理</Title>
+        <Select
+          size="small"
+          style={{ width: 200 }}
+          value={simulatedUser}
+          onChange={setSimulatedUser}
+          options={[
+            { value: 'admin', label: '🔑 模拟身份：主账号' },
+            ...purchaserAccounts.map(p => ({
+              value: p.name,
+              label: `${p.allowBilling ? '✅' : '🚫'} ${p.name}`,
+            })),
+          ]}
+        />
         <Button icon={<DownloadOutlined />} onClick={handleExport}>导出 Excel</Button>
       </div>
 
+      {!hasBillingAccess ? (
+        <Card style={{ borderRadius: 8 }}>
+          <div style={{ textAlign: 'center', padding: 60 }}>
+            <ExclamationCircleOutlined style={{ fontSize: 56, color: '#fa8c16', marginBottom: 16 }} />
+            <br />
+            <Title level={4} style={{ marginTop: 0 }}>无对账访问权限</Title>
+            <Text type="secondary">
+              您当前的模拟身份为「{simulatedUser}」，该采购账号未被授权访问对账页。<br />
+              如需对账权限，请联系主账号管理员在「组织管理 → 采购账号」中开启。
+            </Text>
+          </div>
+        </Card>
+      ) : (
       <Card style={{ borderRadius: 8 }}>
         {/* 筛选栏 */}
         <Space style={{ marginBottom: 16 }} wrap>
@@ -443,6 +472,8 @@ export default function BrandBillings() {
           </div>
         )}
       </Modal>
+
+      )}
 
       {/* 超期行高亮样式 */}
       <style>{`

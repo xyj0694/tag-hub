@@ -22,10 +22,21 @@ export interface Order {
   styleNo?: string;
   sku?: string;
   isUrgent?: boolean;
+  createdBy?: string;
+  dataSource?: 'platform' | 'customer';
   subOrders: SubOrder[];
   cancelReason?: string;
   reduceQuantity?: number;
   statusLog: { status: string; time: string; operator: string }[];
+}
+
+export interface PurchaserAccount {
+  id: number;
+  name: string;
+  phone: string;
+  brandId: number;
+  role: 'admin' | 'purchaser';
+  allowBilling: boolean;
 }
 
 export interface SubOrder {
@@ -90,6 +101,7 @@ export interface EpcRule {
   updatedAt?: string;
   updatedBy?: string;
   usageCount?: number;
+  wasteAllowancePct?: number; // 废标预留比例，默认 2%
 }
 
 export interface EpcRuleChangeLog {
@@ -246,6 +258,13 @@ export const factories: Factory[] = [
   { id: 7, name: '福建晋江成衣厂', contact: '林志伟', phone: '159****3344', email: 'linzw@jinjiang-garment.cn', address: '福建省泉州市晋江市陈埭镇鞋都路88号', status: '启用', orderCount: 15, lastLoginAt: '2026-06-06 11:00', brandName: '—', brandId: null },
 ];
 
+// ---- 采购子账号 ----
+export const purchaserAccounts: PurchaserAccount[] = [
+  { id: 1, name: '赵采购（T恤品类）', phone: '138****7701', brandId: 1, role: 'purchaser', allowBilling: false },
+  { id: 2, name: '钱采购（外套品类）', phone: '138****7702', brandId: 1, role: 'purchaser', allowBilling: true },
+];
+
+
 // ---- EPC 规则变更记录 ----
 export const epcRuleChangeLogs: EpcRuleChangeLog[] = [
   { id: 1, ruleId: 1, action: '编辑', field: '公司前缀', from: '3033', to: '3034', by: '张运营', at: '2026-05-20 14:30' },
@@ -259,12 +278,12 @@ export const epcRuleChangeLogs: EpcRuleChangeLog[] = [
 export const brands: Brand[] = [
   { id: 1, customerCompanyId: 1, name: '波司登（Bosideng）', contact: '张建国', phone: '138****1234', factoryCount: 4,
     epcRules: [
-      { id: 1, name: '新货SGTIN', type: 'SGTIN96', config: '公司前缀:3034 | 序列号:000000001-999999999', active: true, priority: 1, charset: 'HEX', companyPrefix: '3034', serialStart: 1, serialEnd: 999999999, filterValue: 0, usageCount: 156, createdAt: '2026-01-10', updatedAt: '2026-05-20', updatedBy: '张运营' },
+      { id: 1, name: '新货SGTIN', type: 'SGTIN96', config: '公司前缀:3034 | 序列号:000000001-999999999', active: true, priority: 1, charset: 'HEX', companyPrefix: '3034', serialStart: 1, serialEnd: 999999999, filterValue: 0, usageCount: 156, wasteAllowancePct: 2, createdAt: '2026-01-10', updatedAt: '2026-05-20', updatedBy: '张运营' },
       { id: 2, name: '补货款号流水', type: 'HYBRID', config: '前缀:BSD | 序列:000001-999999 | 字符集:HEX', active: true, priority: 2, charset: 'HEX', prefix: 'BSD', seqLength: 6, seqStart: 1, step: 1, seqCurrent: 158, bitCapacity: 96, usageCount: 42, createdAt: '2026-02-15', updatedAt: '2026-05-22', updatedBy: '张运营' },
       { id: 24, name: '平台兜底随机码', type: 'PLATFORM_RANDOM', config: '长度:24 | 字符集:HEX', active: true, priority: 99, charset: 'HEX', randomLength: 24, bitCapacity: 96, usageCount: 0, createdAt: '2026-06-05', updatedAt: '2026-06-05', updatedBy: '张运营' },
     ] },
   { id: 2, customerCompanyId: 1, name: '雪中飞（Snow Flying）', contact: '李明辉', phone: '139****5678', factoryCount: 2,
-    epcRules: [{ id: 3, name: '默认SGTIN', type: 'SGTIN96', config: '公司前缀:3035 | 序列号:000000001-999999999', active: true, charset: 'HEX', companyPrefix: '3035', serialStart: 1, serialEnd: 999999999, filterValue: 0, usageCount: 34, createdAt: '2026-01-15', updatedAt: '2026-03-10', updatedBy: '张运营' }] },
+    epcRules: [{ id: 3, name: '默认SGTIN', type: 'SGTIN96', config: '公司前缀:3035 | 序列号:000000001-999999999', active: true, charset: 'HEX', companyPrefix: '3035', serialStart: 1, serialEnd: 999999999, filterValue: 0, usageCount: 34, wasteAllowancePct: 2, createdAt: '2026-01-15', updatedAt: '2026-03-10', updatedBy: '张运营' }] },
   { id: 3, customerCompanyId: 2, name: '太平鸟男装（PEACEBIRD MEN）', contact: '陈伟', phone: '138****2345', factoryCount: 3,
     epcRules: [{ id: 4, name: 'PB-SGTIN', type: 'SGTIN96', config: '公司前缀:3036 | 序列号:000000001-999999999', active: true, charset: 'HEX', companyPrefix: '3036', serialStart: 1, serialEnd: 999999999, filterValue: 0, usageCount: 67, createdAt: '2026-02-20', updatedAt: '2026-04-05', updatedBy: '李运营' }] },
   { id: 4, customerCompanyId: 2, name: '乐町（LEDIN）', contact: '王芳', phone: '137****3456', factoryCount: 2,
@@ -359,7 +378,7 @@ export const orders: Order[] = [
     type: '大货单', tagType: '吊牌标签', totalQuantity: 200000, status: '生产中',
     createdAt: '2026-06-05 14:30', shippingAddress: '浙江省杭州市余杭区仓前街道文一西路1500号', contact: '张三丰', phone: '138****1234',
     templateName: '标准吊牌模板 v3',
-    productName: '经典圆领短袖T恤', styleNo: 'BST25001', sku: 'BSD-SS25-TEE-001',
+    productName: '经典圆领短袖T恤', styleNo: 'BST25001', sku: 'BSD-SS25-TEE-001', createdBy: '赵采购（T恤品类）', dataSource: 'platform',
     subOrders: [
       { id: '1-1', orderNo: 'TH20260605-003-1', supplierName: '杭州信达标签印刷有限公司', sku: 'BSD-SS24-TEE-001', quantity: 50000, status: '生产中', shippedQuantity: 0 },
       { id: '1-2', orderNo: 'TH20260605-003-2', supplierName: '温州正邦印务有限公司', sku: 'BSD-SS24-TEE-001', quantity: 50000, status: '待接单', shippedQuantity: 0 },
@@ -423,7 +442,7 @@ export const orders: Order[] = [
   { id: '6', orderNo: oNo('2026-06-05', '006'), brandName: '雪中飞（Snow Flying）', factoryName: '温州童装一厂',
     type: '大货单', tagType: '吊牌标签', totalQuantity: 150000, status: '待审核',
     createdAt: '2026-06-05 15:30', shippingAddress: '浙江省温州市瓯海区娄桥工业区', contact: '赵敏', phone: '139****5678',
-    productName: '冰感速干T恤', styleNo: 'XZT25001', sku: 'XZF-SS25-TEE-001', subOrders: [],
+    productName: '冰感速干T恤', styleNo: 'XZT25001', sku: 'XZF-SS25-TEE-001', createdBy: '钱采购（外套品类）', dataSource: 'platform', subOrders: [],
     statusLog: [log('待审核', '2026-06-05 15:30', '赵敏')],
   },
   { id: '7', orderNo: oNo('2026-06-02', '002'), brandName: '雪中飞（Snow Flying）', factoryName: '温州童装一厂',

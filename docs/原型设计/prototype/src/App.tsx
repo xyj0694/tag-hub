@@ -18,6 +18,7 @@ import BrandOrderList from './pages/BrandOrderList';
 import BrandOrderDetail from './pages/BrandOrderDetail';
 import BrandFactories from './pages/BrandFactories';
 import BrandBillings from './pages/BrandBillings';
+import BrandDataImport from './pages/BrandDataImport';
 import OpsFactories from './pages/OpsFactories';
 
 // Ops pages
@@ -88,6 +89,7 @@ export default function App() {
         <Route path="orders" element={<BrandOrderList />} />
         <Route path="orders/:id" element={<BrandOrderDetail />} />
         <Route path="factories" element={<BrandFactories />} />
+        <Route path="data-import" element={<BrandDataImport />} />
         <Route path="billings" element={<BrandBillings />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="change-password" element={<ChangePasswordPage />} />

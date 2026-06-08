@@ -4,7 +4,7 @@ import {
   Tabs, Statistic, Row, Col, Popconfirm, Alert, Badge, Descriptions, theme, Tooltip
 } from 'antd';
 import {
-  CheckCircleOutlined, CloseCircleOutlined, EyeOutlined,
+  CheckCircleOutlined, CloseCircleOutlined, EyeOutlined, SwapOutlined,
   ExclamationCircleOutlined, ClockCircleOutlined, WarningOutlined,
   ReloadOutlined, FilterOutlined, FileTextOutlined, SendOutlined
 } from '@ant-design/icons';
@@ -130,6 +130,10 @@ export default function OpsSupplierDataReview(_props: Props) {
               label: <span><FileTextOutlined /> EPC 数据审核 <Badge count={epcPending} size="small" style={{ marginLeft: 8 }} /></span>,
             },
             {
+              key: 'epc_return',
+              label: <span><SwapOutlined /> EPC 回传审核 <Badge count={queue.filter(i => i.type === 'epc_return' && i.status === 'pending').length} size="small" style={{ marginLeft: 8 }} /></span>,
+            },
+            {
               key: 'shipment',
               label: <span><SendOutlined /> 发货数据审核 <Badge count={shipmentPending} size="small" style={{ marginLeft: 8 }} /></span>,
             },
@@ -196,6 +200,24 @@ export default function OpsSupplierDataReview(_props: Props) {
                       okText="通过"
                       cancelText="取消"
                     >
+                      <Button size="small" type="primary" icon={<CheckCircleOutlined />}>通过</Button>
+                    </Popconfirm>
+                    <Button size="small" danger icon={<CloseCircleOutlined />} onClick={() => { setRejectOpen(r); setRejectReason(''); }}>驳回</Button>
+                  </Space>
+                ),
+              },
+            ] : activeTab === 'epc_return' ? [
+              {
+                title: '供应商', dataIndex: 'supplierName', width: 180, ellipsis: true,
+                render: (t: string) => <Text strong>{t}</Text>,
+              },
+              { title: '品牌方', dataIndex: 'brandName', width: 140, render: (t: string) => <Tag color="blue">{t}</Tag> },
+              { title: '子订单号', dataIndex: 'subOrderNo', width: 140, render: (t: string) => <Text code style={{ fontSize: 11 }}>{t}</Text> },
+              { title: '提交时间', dataIndex: 'submittedAt', width: 140 },
+              { title: '操作', width: 180, render: (_: any, r: SupplierReviewItem) => (
+                  <Space size="small">
+                    <Button size="small" type="link" icon={<EyeOutlined />} onClick={() => setDetailOpen(r)}>明细</Button>
+                    <Popconfirm title="确认审核通过？" description="通过后作废数据将被确认。" onConfirm={() => handleApprove(r)} okText="通过" cancelText="取消">
                       <Button size="small" type="primary" icon={<CheckCircleOutlined />}>通过</Button>
                     </Popconfirm>
                     <Button size="small" danger icon={<CloseCircleOutlined />} onClick={() => { setRejectOpen(r); setRejectReason(''); }}>驳回</Button>

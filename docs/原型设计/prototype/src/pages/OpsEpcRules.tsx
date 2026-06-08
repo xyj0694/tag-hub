@@ -755,6 +755,9 @@ export default function OpsEpcRules() {
           <Form.Item label="优先级" name="priority" tooltip="数字越小优先级越高，品牌匹配规则时优先使用高优先级规则" initialValue={10}>
             <InputNumber min={1} max={99} style={{ width: 120 }} placeholder="10" />
           </Form.Item>
+          <Form.Item label="废标预留比例" name="wasteAllowancePct" tooltip="打印过程中的废标预留百分比，默认 2%。如客户要求连码需额外协商。" initialValue={2}>
+            <InputNumber min={0} max={10} step={0.5} style={{ width: 140 }} placeholder="2" addonAfter="%" />
+          </Form.Item>
 
           {/* 通用：芯片容量 + 字符集 */}
           {ruleType !== 'SGTIN96' && ruleType !== 'UPC_SGTIN96' && ruleType !== 'GRAI96' && (
