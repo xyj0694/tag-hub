@@ -6,7 +6,7 @@ import {
   AuditOutlined, BellOutlined, UserOutlined, KeyOutlined, LogoutOutlined,
   UploadOutlined, TagsOutlined, TeamOutlined, BankOutlined,
   FileTextOutlined, SendOutlined, PrinterOutlined, DollarOutlined,
-  SettingOutlined, ProfileOutlined, GlobalOutlined, ShopOutlined,
+  SettingOutlined, ProfileOutlined, GlobalOutlined, ShopOutlined, SafetyCertificateOutlined,
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { useLang, type Lang } from '../i18n/LanguageContext';
@@ -99,6 +99,7 @@ export default function MainLayout({ role, roleName, brands, currentBrandId, all
         { type: 'divider' },
         { key: '/ops/suppliers', icon: <TeamOutlined />, label: t('nav.suppliers') },
         { key: '/ops/epc-rules', icon: <SettingOutlined />, label: t('nav.epcRules') },
+        { key: '/ops/supplier-review', icon: <SafetyCertificateOutlined />, label: '供应商数据审核' },
         { key: '/ops/billings', icon: <DollarOutlined />, label: t('nav.supplierBillings') },
       ],
       supplier: [

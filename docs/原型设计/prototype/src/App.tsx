@@ -29,6 +29,7 @@ import OpsEpcRules from './pages/OpsEpcRules';
 import OpsCustomerCompanies from "./pages/OpsCustomerCompanies";
 import OpsOrderDetail from "./pages/OpsOrderDetail";
 import OpsBillings from './pages/OpsBillings';
+import OpsSupplierDataReview from './pages/OpsSupplierDataReview';
 
 // Supplier pages
 import SupplierDashboard from './pages/SupplierDashboard';
@@ -53,7 +54,7 @@ function BrandLayoutWrapper() {
       <MainLayout
         role="brand"
         roleName="品牌方"
-        brands={allowSwitch ? mockBrands : undefined}
+        brands={allowSwitch ? mockBrands.filter(b => b.id === 1 || b.id === 2) : undefined}
         currentBrandId={currentBrandId}
         allowBrandSwitch={allowSwitch}
         onBrandChange={setCurrentBrandId}
@@ -103,6 +104,7 @@ export default function App() {
         <Route path="suppliers" element={<OpsSuppliers />} />
         <Route path="factories" element={<OpsFactories />} />
         <Route path="epc-rules" element={<OpsEpcRules />} />
+        <Route path="supplier-review" element={<OpsSupplierDataReview />} />
         <Route path="billings" element={<OpsBillings />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="change-password" element={<ChangePasswordPage />} />
