@@ -1312,9 +1312,89 @@ export const brandBillings: BillingItem[] = [
   },
 ];
 export const supplierBillings: BillingItem[] = [
-  { key: '1', billingNo: 'BILL-S-202606-001', period: '2026-06-01 ~ 2026-06-30', totalAmount: 68000, status: '待确认', invoiceUploaded: false, paymentDueDate: '—', overdue: false, dimension: 'factory', dimensionName: '杭州信达标签印刷有限公司', items: [{ sku: 'BSD-SS25-TEE-001', productName: '经典圆领短袖T恤', quantity: 80000, unitPrice: 0.85, amount: 68000, shippedAt: '2026-06-05', trackingNo: 'SF1234567890' }] },
-  { key: '2', billingNo: 'BILL-S-202605-002', period: '2026-05-01 ~ 2026-05-31', totalAmount: 103000, status: '已确认', invoiceUploaded: true, paymentDueDate: '2026-07-15', overdue: false, dimension: 'factory', dimensionName: '杭州信达标签印刷有限公司', items: [{ sku: 'BSD-SS25-JKT-003', productName: '防风连帽夹克', quantity: 45000, unitPrice: 1.20, amount: 54000, shippedAt: '2026-05-05', trackingNo: 'SF1244567891' }, { sku: 'BSD-SS25-POL-004', productName: '珠地棉翻领Polo', quantity: 50000, unitPrice: 0.98, amount: 49000, shippedAt: '2026-05-10', trackingNo: 'SF1244567892' }] },
-  { key: '3', billingNo: 'BILL-S-202604-003', period: '2026-04-01 ~ 2026-04-30', totalAmount: 87500, status: '已付款', invoiceUploaded: true, paymentDueDate: '2026-06-01', overdue: false, dimension: 'factory', dimensionName: '温州正邦印务有限公司', items: [{ sku: 'XZF-SS25-TEE-001', productName: '冰感速干T恤', quantity: 70000, unitPrice: 0.80, amount: 56000, shippedAt: '2026-04-05', trackingNo: 'SF1234567890' }, { sku: 'XZF-SS25-JKT-002', productName: '轻薄防晒外套', quantity: 35000, unitPrice: 0.90, amount: 31500, shippedAt: '2026-04-10', trackingNo: 'SF1234567891' }] },
+  {
+    key: '1', billingNo: 'BILL-S-202606-001', period: '2026-06-01 ~ 2026-06-30',
+    totalAmount: 235000, status: '待确认', invoiceUploaded: false,
+    paymentDueDate: '2026-08-15', overdue: false,
+    brandName: '波司登（Bosideng）', dimension: 'supplier', dimensionName: '杭州信达标签印刷有限公司',
+    items: [
+      { parentOrderNo: 'TH20260601', subOrderNo: 'TH20260601-1', sku: 'BSD-SS25-TEE-001', productName: '经典圆领短袖T恤', quantity: 80000, unitPrice: 0.85, amount: 68000, batches: [{ batchNo: 'SH20260605-001', quantity: 50000, shippedAt: '2026-06-05', supTrackingNo: 'SF1234567890', platformTrackingNo: 'PT1234567890', signedAt: '2026-06-08', signedDocNo: 'ESIGN-BTH20260601-1-1' }, { batchNo: 'SH20260610-002', quantity: 30000, shippedAt: '2026-06-10', supTrackingNo: 'SF1234567891', platformTrackingNo: 'PT1234567891', signedAt: '2026-06-13', signedDocNo: 'ESIGN-BTH20260601-1-2' }] },
+      { parentOrderNo: 'TH20260601', subOrderNo: 'TH20260601-2', sku: 'BSD-SS25-JKT-003', productName: '防风连帽夹克', quantity: 45000, unitPrice: 1.20, amount: 54000, batches: [{ batchNo: 'SH20260605-003', quantity: 45000, shippedAt: '2026-06-05', supTrackingNo: 'SF1244567891', platformTrackingNo: 'PT1244567891', signedAt: '2026-06-08', signedDocNo: 'ESIGN-BTH20260601-2-1' }] },
+      { parentOrderNo: 'TH20260602', subOrderNo: 'TH20260602-1', sku: 'BSD-SS25-POL-004', productName: '珠地棉翻领Polo', quantity: 50000, unitPrice: 0.98, amount: 49000, batches: [{ batchNo: 'SH20260608-001', quantity: 30000, shippedAt: '2026-06-08', supTrackingNo: 'SF1244567892', platformTrackingNo: 'PT1244567892', signedAt: '2026-06-11', signedDocNo: 'ESIGN-BTH20260602-1-1' }, { batchNo: 'SH20260612-002', quantity: 20000, shippedAt: '2026-06-12', supTrackingNo: 'SF1244567893', platformTrackingNo: 'PT1244567893', signedAt: '2026-06-15', signedDocNo: '' }] },
+      { parentOrderNo: 'TH20260602', subOrderNo: 'TH20260602-2', sku: 'BSD-SS25-TEE-002', productName: '宽松落肩短袖T恤', quantity: 80000, unitPrice: 0.80, amount: 64000, batches: [{ batchNo: 'SH20260608-003', quantity: 80000, shippedAt: '2026-06-08', supTrackingNo: 'SF1244567894', platformTrackingNo: 'PT1244567894', signedAt: '', signedDocNo: '' }] },
+    ],
+  },
+  {
+    key: '2', billingNo: 'BILL-S-202605-002', period: '2026-05-01 ~ 2026-05-31',
+    totalAmount: 103000, status: '已确认', invoiceUploaded: true,
+    paymentDueDate: '2026-07-15', overdue: false,
+    brandName: '波司登（Bosideng）', dimension: 'supplier', dimensionName: '杭州信达标签印刷有限公司',
+    items: [
+      { parentOrderNo: 'TH20260501', subOrderNo: 'TH20260501-1', sku: 'BSD-SS25-JKT-003', productName: '防风连帽夹克', quantity: 45000, unitPrice: 1.20, amount: 54000, batches: [{ batchNo: 'SH20260505-001', quantity: 45000, shippedAt: '2026-05-05', supTrackingNo: 'SF1244567891', platformTrackingNo: 'PT1244567891', signedAt: '2026-05-08', signedDocNo: 'ESIGN-BTH20260501-1-1' }] },
+      { parentOrderNo: 'TH20260501', subOrderNo: 'TH20260501-2', sku: 'BSD-SS25-POL-004', productName: '珠地棉翻领Polo', quantity: 50000, unitPrice: 0.98, amount: 49000, batches: [{ batchNo: 'SH20260510-001', quantity: 50000, shippedAt: '2026-05-10', supTrackingNo: 'SF1244567892', platformTrackingNo: 'PT1244567892', signedAt: '2026-05-13', signedDocNo: 'ESIGN-BTH20260501-2-1' }] },
+    ],
+  },
+  {
+    key: '3', billingNo: 'BILL-S-202604-003', period: '2026-04-01 ~ 2026-04-30',
+    totalAmount: 87500, status: '已付款', invoiceUploaded: true,
+    paymentDueDate: '2026-06-01', overdue: false,
+    brandName: '雪中飞（Snow Flying）', dimension: 'supplier', dimensionName: '温州正邦印务有限公司',
+    items: [
+      { parentOrderNo: 'TH20260401', subOrderNo: 'TH20260401-1', sku: 'XZF-SS25-TEE-001', productName: '冰感速干T恤', quantity: 70000, unitPrice: 0.80, amount: 56000, batches: [{ batchNo: 'SH20260405-001', quantity: 70000, shippedAt: '2026-04-05', supTrackingNo: 'SF1234567890', platformTrackingNo: 'PT1234567890', signedAt: '2026-04-08', signedDocNo: 'ESIGN-BTH20260401-1-1' }] },
+      { parentOrderNo: 'TH20260401', subOrderNo: 'TH20260401-2', sku: 'XZF-SS25-JKT-002', productName: '轻薄防晒外套', quantity: 35000, unitPrice: 0.90, amount: 31500, batches: [{ batchNo: 'SH20260410-001', quantity: 35000, shippedAt: '2026-04-10', supTrackingNo: 'SF1234567891', platformTrackingNo: 'PT1234567891', signedAt: '2026-04-13', signedDocNo: 'ESIGN-BTH20260401-2-1' }] },
+    ],
+  },
+  {
+    key: '4', billingNo: 'BILL-S-202603-004', period: '2026-03-01 ~ 2026-03-31',
+    totalAmount: 152000, status: '超期未付', invoiceUploaded: true,
+    paymentDueDate: '2026-05-01', overdue: true,
+    brandName: '波司登（Bosideng）', dimension: 'supplier', dimensionName: '宁波华美印刷包装有限公司',
+    items: [
+      { parentOrderNo: 'TH20260301', subOrderNo: 'TH20260301-1', sku: 'BSD-SS25-TEE-001', productName: '经典圆领短袖T恤', quantity: 60000, unitPrice: 0.85, amount: 51000, batches: [{ batchNo: 'SH20260305-001', quantity: 60000, shippedAt: '2026-03-05', supTrackingNo: 'SF1234567890', platformTrackingNo: 'PT1234567890', signedAt: '2026-03-08', signedDocNo: 'ESIGN-BTH20260301-1-1' }] },
+      { parentOrderNo: 'TH20260301', subOrderNo: 'TH20260301-2', sku: 'BSD-SS25-JKT-003', productName: '防风连帽夹克', quantity: 40000, unitPrice: 1.20, amount: 48000, batches: [{ batchNo: 'SH20260305-002', quantity: 40000, shippedAt: '2026-03-05', supTrackingNo: 'SF1244567891', platformTrackingNo: 'PT1244567891', signedAt: '2026-03-08', signedDocNo: 'ESIGN-BTH20260301-2-1' }] },
+      { parentOrderNo: 'TH20260302', subOrderNo: 'TH20260302-1', sku: 'BSD-SS25-POL-004', productName: '珠地棉翻领Polo', quantity: 50000, unitPrice: 1.06, amount: 53000, batches: [{ batchNo: 'SH20260310-001', quantity: 50000, shippedAt: '2026-03-10', supTrackingNo: 'SF1244567892', platformTrackingNo: 'PT1244567892', signedAt: '2026-03-13', signedDocNo: 'ESIGN-BTH20260302-1-1' }] },
+    ],
+  },
+  {
+    key: '5', billingNo: 'BILL-S-202602-005', period: '2026-02-01 ~ 2026-02-28',
+    totalAmount: 76000, status: '已付款', invoiceUploaded: true,
+    paymentDueDate: '2026-04-01', overdue: false,
+    brandName: '雪中飞（Snow Flying）', dimension: 'supplier', dimensionName: '义乌丰源包装印刷有限公司',
+    items: [
+      { parentOrderNo: 'TH20260201', subOrderNo: 'TH20260201-1', sku: 'XZF-SS25-TEE-001', productName: '冰感速干T恤', quantity: 50000, unitPrice: 0.80, amount: 40000, batches: [{ batchNo: 'SH20260205-001', quantity: 50000, shippedAt: '2026-02-05', supTrackingNo: 'SF1234567890', platformTrackingNo: 'PT1234567890', signedAt: '2026-02-08', signedDocNo: 'ESIGN-BTH20260201-1-1' }] },
+      { parentOrderNo: 'TH20260201', subOrderNo: 'TH20260201-2', sku: 'XZF-SS25-JKT-002', productName: '轻薄防晒外套', quantity: 40000, unitPrice: 0.90, amount: 36000, batches: [{ batchNo: 'SH20260205-002', quantity: 40000, shippedAt: '2026-02-05', supTrackingNo: 'SF1234567891', platformTrackingNo: 'PT1234567891', signedAt: '2026-02-08', signedDocNo: 'ESIGN-BTH20260201-2-1' }] },
+    ],
+  },
+  {
+    key: '6', billingNo: 'BILL-S-202601-006', period: '2026-01-01 ~ 2026-01-31',
+    totalAmount: 45000, status: '待确认', invoiceUploaded: false,
+    paymentDueDate: '2026-03-15', overdue: false,
+    brandName: '波司登（Bosideng）', dimension: 'supplier', dimensionName: '绍兴天成标签科技有限公司',
+    items: [
+      { parentOrderNo: 'TH20260101', subOrderNo: 'TH20260101-1', sku: 'BSD-SS25-TEE-002', productName: '宽松落肩短袖T恤', quantity: 50000, unitPrice: 0.80, amount: 40000, batches: [{ batchNo: 'SH20260105-001', quantity: 50000, shippedAt: '2026-01-05', supTrackingNo: 'SF1234567890', platformTrackingNo: 'PT1234567890', signedAt: '2026-01-08', signedDocNo: 'ESIGN-BTH20260101-1-1' }] },
+      { parentOrderNo: 'TH20260102', subOrderNo: 'TH20260102-1', sku: 'BSD-SS25-SWT-005', productName: '抓绒圆领卫衣', quantity: 5000, unitPrice: 1.00, amount: 5000, batches: [{ batchNo: 'SH20260110-001', quantity: 5000, shippedAt: '2026-01-10', supTrackingNo: 'SF1234567891', platformTrackingNo: 'PT1234567891', signedAt: '', signedDocNo: '' }] },
+    ],
+  },
+  {
+    key: '7', billingNo: 'BILL-S-202512-007', period: '2025-12-01 ~ 2025-12-31',
+    totalAmount: 195000, status: '超期未付', invoiceUploaded: true,
+    paymentDueDate: '2026-02-01', overdue: true,
+    brandName: '雪中飞（Snow Flying）', dimension: 'supplier', dimensionName: '温州正邦印务有限公司',
+    items: [
+      { parentOrderNo: 'TH20251201', subOrderNo: 'TH20251201-1', sku: 'XZF-SS25-TEE-001', productName: '冰感速干T恤', quantity: 100000, unitPrice: 0.80, amount: 80000, batches: [{ batchNo: 'SH20251205-001', quantity: 100000, shippedAt: '2025-12-05', supTrackingNo: 'SF1234567890', platformTrackingNo: 'PT1234567890', signedAt: '2025-12-08', signedDocNo: 'ESIGN-BTH20251201-1-1' }] },
+      { parentOrderNo: 'TH20251201', subOrderNo: 'TH20251201-2', sku: 'XZF-SS25-JKT-002', productName: '轻薄防晒外套', quantity: 80000, unitPrice: 0.90, amount: 72000, batches: [{ batchNo: 'SH20251205-002', quantity: 80000, shippedAt: '2025-12-05', supTrackingNo: 'SF1234567891', platformTrackingNo: 'PT1234567891', signedAt: '2025-12-08', signedDocNo: 'ESIGN-BTH20251201-2-1' }] },
+      { parentOrderNo: 'TH20251202', subOrderNo: 'TH20251202-1', sku: 'XZF-SS25-TEE-001', productName: '冰感速干T恤', quantity: 50000, unitPrice: 0.86, amount: 43000, batches: [{ batchNo: 'SH20251210-001', quantity: 50000, shippedAt: '2025-12-10', supTrackingNo: 'SF1234567892', platformTrackingNo: 'PT1234567892', signedAt: '2025-12-13', signedDocNo: 'ESIGN-BTH20251202-1-1' }] },
+    ],
+  },
+  {
+    key: '8', billingNo: 'BILL-S-202511-008', period: '2025-11-01 ~ 2025-11-30',
+    totalAmount: 68000, status: '已付款', invoiceUploaded: true,
+    paymentDueDate: '2026-01-01', overdue: false,
+    brandName: '波司登（Bosideng）', dimension: 'supplier', dimensionName: '杭州信达标签印刷有限公司',
+    items: [
+      { parentOrderNo: 'TH20251101', subOrderNo: 'TH20251101-1', sku: 'BSD-SS25-TEE-001', productName: '经典圆领短袖T恤', quantity: 80000, unitPrice: 0.85, amount: 68000, batches: [{ batchNo: 'SH20251105-001', quantity: 80000, shippedAt: '2025-11-05', supTrackingNo: 'SF1234567890', platformTrackingNo: 'PT1234567890', signedAt: '2025-11-08', signedDocNo: 'ESIGN-BTH20251101-1-1' }] },
+    ],
+  },
 ];
 
 // ---- 产品档案（SKU → 商品信息） ----
@@ -1336,4 +1416,75 @@ export const productCatalog: ProductInfo[] = [
   { sku: 'BSD-SS25-DRS-006', name: '通勤抗皱衬衫', spec: '180/100A', size: 'L', color: '浅蓝', styleNo: 'BSD25001', category: '衬衫' },
   { sku: 'XZF-SS25-TEE-001', name: '冰感速干T恤', spec: '175/96A', size: 'M', color: '白色', styleNo: 'XZT25001', category: 'T恤' },
   { sku: 'XZF-SS25-JKT-002', name: '轻薄防晒外套', spec: '180/100A', size: 'L', color: '浅灰', styleNo: 'XZJ25001', category: '夹克' },
+];
+
+
+// ---- 供应商提交数据待平台审核队列 ----
+export type ReviewItemType = 'epc' | 'shipment';
+
+export interface SupplierReviewItem {
+  id: string;
+  type: ReviewItemType;
+  supplierName: string;
+  supplierId: number;
+  brandName: string;
+  parentOrderNo: string;
+  subOrderNo: string;
+  submittedAt: string;
+  status: 'pending' | 'approved' | 'rejected';
+  // EPC 数据
+  epcTotal?: number;
+  epcPassed?: number;
+  epcFailed?: number;
+  epcErrors?: EpcValidationError[];
+  // 发货数据
+  shipmentBatchNo?: string;
+  shipmentQuantity?: number;
+  shipmentCourier?: string;
+  shipmentTrackingNo?: string;
+  rejectReason?: string;
+}
+
+export const supplierReviewQueue: SupplierReviewItem[] = [
+  {
+    id: 'rev-001', type: 'epc', supplierName: '杭州信达标签印刷有限公司', supplierId: 1,
+    brandName: '波司登（Bosideng）', parentOrderNo: 'TH20260605', subOrderNo: 'TH20260605-1',
+    submittedAt: '2026-06-07 09:30', status: 'pending',
+    epcTotal: 80000, epcPassed: 79850, epcFailed: 150,
+    epcErrors: [
+      { row: 1234, epc: '3034ABC000000001234', reason: 'EPC 重复：与历史生产数据（订单 TH20260301-001）冲突' },
+      { row: 5678, epc: 'XYZ00100000005678', reason: '格式不匹配：公司前缀应为 3034，当前为 XYZ' },
+    ],
+  },
+  {
+    id: 'rev-002', type: 'epc', supplierName: '温州正邦印务有限公司', supplierId: 2,
+    brandName: '雪中飞（Snow Flying）', parentOrderNo: 'TH20260606', subOrderNo: 'TH20260606-1',
+    submittedAt: '2026-06-07 10:15', status: 'pending',
+    epcTotal: 50000, epcPassed: 50000, epcFailed: 0,
+  },
+  {
+    id: 'rev-003', type: 'shipment', supplierName: '宁波华美印刷包装有限公司', supplierId: 3,
+    brandName: '波司登（Bosideng）', parentOrderNo: 'TH20260601', subOrderNo: 'TH20260601-3',
+    submittedAt: '2026-06-07 08:45', status: 'pending',
+    shipmentBatchNo: 'SH20260607-001', shipmentQuantity: 40000,
+    shipmentCourier: '顺丰速运', shipmentTrackingNo: 'SF9988776655111',
+  },
+  {
+    id: 'rev-004', type: 'shipment', supplierName: '绍兴天成标签科技有限公司', supplierId: 4,
+    brandName: '波司登（Bosideng）', parentOrderNo: 'TH20260602', subOrderNo: 'TH20260602-3',
+    submittedAt: '2026-06-07 11:00', status: 'pending',
+    shipmentBatchNo: 'SH20260607-002', shipmentQuantity: 25000,
+    shipmentCourier: '圆通速递', shipmentTrackingNo: 'YTO1122336699001',
+  },
+  {
+    id: 'rev-005', type: 'epc', supplierName: '义乌丰源包装印刷有限公司', supplierId: 7,
+    brandName: '雪中飞（Snow Flying）', parentOrderNo: 'TH20260607', subOrderNo: 'TH20260607-1',
+    submittedAt: '2026-06-07 14:20', status: 'pending',
+    epcTotal: 30000, epcPassed: 29700, epcFailed: 300,
+    epcErrors: [
+      { row: 450, epc: 'XZF-SS25-ERR-00450', reason: '流水号格式异常：应为 6 位，当前 3 位' },
+      { row: 1200, epc: 'XZF-SS25-ERR-01200', reason: 'EPC 长度异常：应为 24 位，当前 18 位' },
+      { row: 8900, epc: 'XZF-SS25-ERR-08900', reason: 'EPC 重复：与当前批次第 234 行重复' },
+    ],
+  },
 ];
