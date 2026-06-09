@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Card, Table, Tag, Input, Typography, Tabs, Switch, Space, Badge, Button, Modal, Form, Select, Alert, theme } from "antd";
-import { CheckCircleOutlined, ClockCircleOutlined, StopOutlined, TeamOutlined, BankOutlined, UserOutlined, PlusOutlined, EyeOutlined, EyeInvisibleOutlined } from "@ant-design/icons";
+import { CheckCircleOutlined, ClockCircleOutlined, StopOutlined, TeamOutlined, BankOutlined, UserOutlined, PlusOutlined } from "@ant-design/icons";
 import { factories, purchaserAccounts } from '../data/mock';
 import type { Factory, PurchaserAccount } from '../data/mock';
 import { useBrandContext } from '../data/BrandContext';
@@ -95,7 +95,7 @@ export default function BrandFactories() {
           <>
             <Alert type="info" showIcon icon={<EyeOutlined />}
               title="工厂由平台方统一管理"
-              description="您可控制各工厂对本品牌订单的可见性。如需新增或修改工厂信息，请联系平台运营。"
+              description="以下为平台方已授权的成衣工厂。开启后该工厂可在下单时选择，关闭后不在列表中显示。如需新增或修改工厂，请联系平台运营。"
               style={{ marginBottom: 16, borderRadius: 6 }}
             />
 
@@ -109,7 +109,7 @@ export default function BrandFactories() {
                 <br /><Text strong style={{ fontSize: 18, color: '#52c41a' }}>{filteredFactories.filter(f => f.status === '启用').length}</Text>
               </div>
               <div style={{ flex: 1, minWidth: 120, background: '#e6f7ff', borderRadius: 8, padding: '10px 14px', border: '1px solid #91d5ff' }}>
-                <Text type="secondary" style={{ fontSize: 12, color: '#1677ff' }}>可见</Text>
+                <Text type="secondary" style={{ fontSize: 12, color: '#1677ff' }}>显示</Text>
                 <br /><Text strong style={{ fontSize: 18, color: '#1677ff' }}>{Object.values(factoryVisibility).filter(Boolean).length}</Text>
               </div>
               <div style={{ flex: 1, minWidth: 120, background: token.colorFillQuaternary, borderRadius: 8, padding: '10px 14px' }}>
@@ -139,13 +139,13 @@ export default function BrandFactories() {
                   render: (v: number) => v > 0 ? <Text strong>{v.toLocaleString()}</Text> : <Text type="secondary">—</Text>,
                 },
                 {
-                  title: '可见', dataIndex: 'id', width: 80, align: 'center' as const,
+                  title: '本品牌显示', dataIndex: 'id', width: 100, align: 'center' as const,
                   render: (id: number) => (
                     <Switch
                       checked={factoryVisibility[id] ?? false}
                       onChange={(checked) => handleToggleVisibility(id, checked)}
-                      checkedChildren={<EyeOutlined />}
-                      unCheckedChildren={<EyeInvisibleOutlined />}
+                      checkedChildren="显示"
+                      unCheckedChildren="隐藏"
                       size="small"
                     />
                   ),
