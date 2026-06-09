@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Card, Table, Tag, Input, Typography, Tabs, Switch, Space, Badge, Button, Modal, Form, Select, Alert, theme } from "antd";
+import { Card, Table, Tag, Input, Typography, Tabs, Switch, Space, Badge, Button, Modal, Form, Select, theme } from "antd";
 import { CheckCircleOutlined, ClockCircleOutlined, StopOutlined, TeamOutlined, BankOutlined, UserOutlined, PlusOutlined } from "@ant-design/icons";
 import { factories, purchaserAccounts } from '../data/mock';
 import type { Factory, PurchaserAccount } from '../data/mock';
@@ -17,13 +17,7 @@ export default function BrandFactories() {
   const { token } = theme.useToken();
   const { currentBrandId, currentBrandName } = useBrandContext();
   const [search, setSearch] = useState('');
-  const [activeTab, setActiveTab] = useState<string>('factories');
-  const [factoryVisibility, setFactoryVisibility] = useState<Record<number, boolean>>(() => {
-    const map: Record<number, boolean> = {};
-    factories.forEach(f => { map[f.id] = f.visibleToBrand; });
-    return map;
-  });
-
+  const [activeTab, setActiveTab] = useState<string>('purchasers');
   // 新增采购账号弹窗
   const [addOpen, setAddOpen] = useState(false);
   const [addForm] = Form.useForm();
@@ -54,11 +48,6 @@ export default function BrandFactories() {
     return list;
   }, [currentBrandId, search]);
 
-  const handleToggleVisibility = (factoryId: number, checked: boolean) => {
-    setFactoryVisibility(prev => ({ ...prev, [factoryId]: checked }));
-    // TODO: 实际接入后端 API 后，此处应调用接口保存可见性配置
-  };
-
   const handleAddPurchaser = () => {
     addForm.validateFields().then(values => {
       // TODO: 实际接入后端 API 后，此处应调用接口创建采购账号
@@ -78,12 +67,12 @@ export default function BrandFactories() {
           onChange={setActiveTab}
           items={[
             {
-              key: 'factories',
-              label: <span><BankOutlined /> 工厂管理 <Badge count={filteredFactories.length} size="small" style={{ marginLeft: 8 }} /></span>,
-            },
-            {
               key: 'purchasers',
               label: <span><TeamOutlined /> 采购账号 <Badge count={filteredPurchasers.length} size="small" style={{ marginLeft: 8 }} /></span>,
+            },
+            {
+              key: 'factories',
+              label: <span><BankOutlined /> 工厂管理 <Badge count={filteredFactories.length} size="small" style={{ marginLeft: 8 }} /></span>,
             },
           ]}
         />
@@ -93,12 +82,6 @@ export default function BrandFactories() {
 
         {activeTab === 'factories' ? (
           <>
-            <Alert type="info" showIcon icon={<EyeOutlined />}
-              title="工厂由平台方统一管理"
-              description="以下为平台方已授权的成衣工厂。开启后该工厂可在下单时选择，关闭后不在列表中显示。如需新增或修改工厂，请联系平台运营。"
-              style={{ marginBottom: 16, borderRadius: 6 }}
-            />
-
             <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
               <div style={{ flex: 1, minWidth: 120, background: token.colorFillQuaternary, borderRadius: 8, padding: '10px 14px' }}>
                 <Text type="secondary" style={{ fontSize: 12 }}>工厂总数</Text>
@@ -107,14 +90,6 @@ export default function BrandFactories() {
               <div style={{ flex: 1, minWidth: 120, background: '#f6ffed', borderRadius: 8, padding: '10px 14px', border: '1px solid #b7eb8f' }}>
                 <Text type="secondary" style={{ fontSize: 12, color: '#52c41a' }}>已激活</Text>
                 <br /><Text strong style={{ fontSize: 18, color: '#52c41a' }}>{filteredFactories.filter(f => f.status === '启用').length}</Text>
-              </div>
-              <div style={{ flex: 1, minWidth: 120, background: '#e6f7ff', borderRadius: 8, padding: '10px 14px', border: '1px solid #91d5ff' }}>
-                <Text type="secondary" style={{ fontSize: 12, color: '#1677ff' }}>显示</Text>
-                <br /><Text strong style={{ fontSize: 18, color: '#1677ff' }}>{Object.values(factoryVisibility).filter(Boolean).length}</Text>
-              </div>
-              <div style={{ flex: 1, minWidth: 120, background: token.colorFillQuaternary, borderRadius: 8, padding: '10px 14px' }}>
-                <Text type="secondary" style={{ fontSize: 12 }}>隐藏</Text>
-                <br /><Text strong style={{ fontSize: 18 }}>{Object.values(factoryVisibility).filter(v => !v).length}</Text>
               </div>
             </div>
 
@@ -137,18 +112,6 @@ export default function BrandFactories() {
                 { title: '地址', dataIndex: 'address', ellipsis: true, width: 200 },
                 { title: '订单数', dataIndex: 'orderCount', width: 70, align: 'right' as const,
                   render: (v: number) => v > 0 ? <Text strong>{v.toLocaleString()}</Text> : <Text type="secondary">—</Text>,
-                },
-                {
-                  title: '本品牌显示', dataIndex: 'id', width: 100, align: 'center' as const,
-                  render: (id: number) => (
-                    <Switch
-                      checked={factoryVisibility[id] ?? false}
-                      onChange={(checked) => handleToggleVisibility(id, checked)}
-                      checkedChildren="显示"
-                      unCheckedChildren="隐藏"
-                      size="small"
-                    />
-                  ),
                 },
               ]}
             />

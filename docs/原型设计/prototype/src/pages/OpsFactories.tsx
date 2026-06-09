@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Card, Table, Button, Tag, Modal, Form, Input, Space, Typography, message, Cascader, Alert, Popconfirm, Select, Switch, theme } from 'antd';
-import { PlusOutlined, EditOutlined, StopOutlined, KeyOutlined, MailOutlined, PhoneOutlined, InfoCircleOutlined, CheckCircleOutlined, ClockCircleOutlined, ReloadOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, StopOutlined, KeyOutlined, MailOutlined, PhoneOutlined, InfoCircleOutlined, CheckCircleOutlined, ClockCircleOutlined, ReloadOutlined, EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import { factories, brands } from '../data/mock';
 import type { Factory } from '../data/mock';
 import { regionData, findRegionPath } from '../data/regions';
@@ -47,6 +47,11 @@ export default function OpsFactories() {
   const [regionPath, setRegionPath] = useState<string[]>([]);
   const [addressDetail, setAddressDetail] = useState('');
   const [independent, setIndependent] = useState(false);
+  const [factoryVisibility, setFactoryVisibility] = useState<Record<number, boolean>>(() => {
+    const map: Record<number, boolean> = {};
+    factories.forEach(f => { map[f.id] = f.visibleToBrand; });
+    return map;
+  });
 
   const filteredFactories = useMemo(() => {
     let list = [...factoryList];
@@ -68,6 +73,11 @@ export default function OpsFactories() {
   const fActive = filteredFactories.filter(f => f.status === '启用').length;
   const fPending = filteredFactories.filter(f => f.status === '未激活').length;
   const fDisabled = filteredFactories.filter(f => f.status === '停用').length;
+
+  const handleToggleVisibility = (factoryId: number, checked: boolean) => {
+    setFactoryVisibility(prev => ({ ...prev, [factoryId]: checked }));
+    message.success(checked ? '已设为品牌可见' : '已隐藏');
+  };
 
   const openAddFactory = () => {
     setEditFactory(null);
@@ -242,6 +252,18 @@ export default function OpsFactories() {
             {
               title: '最近登录', dataIndex: 'lastLoginAt', width: 130,
               render: (t: string) => <Text type="secondary" style={{ fontSize: 12 }}>{t}</Text>,
+            },
+            {
+              title: '品牌可见', dataIndex: 'id', width: 90, align: 'center' as const,
+              render: (id: number) => (
+                <Switch
+                  checked={factoryVisibility[id] ?? false}
+                  onChange={(checked) => handleToggleVisibility(id, checked)}
+                  checkedChildren={<EyeOutlined />}
+                  unCheckedChildren={<EyeInvisibleOutlined />}
+                  size="small"
+                />
+              ),
             },
             {
               title: '操作', width: 280,
