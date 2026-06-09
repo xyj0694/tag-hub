@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Card, Table, Tag, Input, Typography, Tabs, Switch, Space, Badge, Button, Modal, Form, Select, theme } from "antd";
-import { CheckCircleOutlined, ClockCircleOutlined, StopOutlined, TeamOutlined, BankOutlined, UserOutlined, PlusOutlined } , BookOutlined } from "@ant-design/icons";
+import {Card, Table, Tag, Input, Typography, Tabs, Switch, Space, Badge, Button, Modal, Form, Select, theme, Alert} from "antd";
+import { CheckCircleOutlined, ClockCircleOutlined, StopOutlined, TeamOutlined, BankOutlined, UserOutlined, PlusOutlined , BookOutlined } from "@ant-design/icons";
 import { factories, purchaserAccounts } from '../data/mock';
 import type { Factory, PurchaserAccount } from '../data/mock';
 import { useBrandContext } from '../data/BrandContext';
@@ -13,7 +13,6 @@ const factoryStatusMap: Record<string, { color: string; text: string; icon?: Rea
   '停用': { color: 'default', text: '已停用', icon: <StopOutlined /> },
 };
 
-      {/* ─── 使用说明书 Modal ─── */}
       <Modal
         title={<Space><BookOutlined /> 组织管理使用说明书</Space>}
         open={guideModalOpen}
@@ -22,53 +21,44 @@ const factoryStatusMap: Record<string, { color: string; text: string; icon?: Rea
         footer={<Button type="primary" onClick={() => setGuideModalOpen(false)}>关闭</Button>}
       >
         <div style={{ fontSize: 13, lineHeight: 1.9, maxHeight: '60vh', overflow: 'auto', paddingRight: 8 }}>
-          <Alert
-            title="本文档面向品牌方管理员，介绍采购账号的创建与权限管理，以及工厂列表的查看。"
-            type="info" showIcon style={{ marginBottom: 20, borderRadius: 6 }}
-          />
+          <Alert type="info" showIcon style={{ marginBottom: 20, borderRadius: 6 }}
+            title="本文档面向品牌方管理员，介绍采购账号的创建与权限管理，以及工厂列表的查看。" />
           <Text strong style={{ fontSize: 15 }}>一、采购账号管理</Text>
           <div style={{ margin: '12px 0 16px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
             <Text strong>新增采购账号</Text>
             <p style={{ margin: '4px 0 0' }}>
               点击<Button size="small" type="primary" icon={<PlusOutlined />}>新增采购账号</Button>，
-              填写采购员姓名、手机号，选择角色（主账号/子采购）并配置对账权限。
-              系统将自动生成初始密码并通过短信通知采购员。
+              填写采购员姓名、手机号、角色和对账权限。系统自动生成密码并短信通知。
             </p>
           </div>
           <div style={{ margin: '0 0 16px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
             <Text strong>角色与权限</Text>
             <p style={{ margin: '4px 0 0' }}>
-              <Tag color="blue">主账号</Tag>可查看本品牌下全部订单和对账单。
+              <Tag color="blue">主账号</Tag>可查看全部订单和对账单。
               <Tag color="cyan">子采购</Tag>仅可查看本人创建的订单。
             </p>
           </div>
           <div style={{ margin: '0 0 20px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
             <Text strong>对账权限</Text>
-            <p style={{ margin: '4px 0 0' }}>
-              通过<Switch checkedChildren="允许" unCheckedChildren="禁止" size="small" />开关控制采购账号是否可访问对账页面。
-              关闭后该采购员将无法查看对账单。主账号默认拥有对账权限。
-            </p>
+            <p style={{ margin: '4px 0 0' }}>开关控制采购账号是否可访问对账页面。关闭后该采购员无法查看对账单。</p>
           </div>
           <Text strong style={{ fontSize: 15 }}>二、工厂管理</Text>
           <div style={{ margin: '12px 0 16px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
             <Text strong>工厂列表</Text>
             <p style={{ margin: '4px 0 0' }}>
-              展示平台方已授权的成衣工厂信息，包括工厂名称、状态、联系人、订单数等。
-              品牌方在此仅可查看工厂信息，工厂的新增和修改由平台运营统一管理。
+              展示平台方已授权的成衣工厂信息。品牌方仅可查看，工厂的新增和修改由平台运营统一管理。
             </p>
           </div>
           <div style={{ margin: '0 0 20px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
             <Text strong>工厂状态</Text>
             <p style={{ margin: '4px 0 0' }}>
-              <Tag color="green">已激活</Tag>工厂正常运营，可承接订单。
-              <Tag color="orange">未激活</Tag>工厂尚未激活，暂不可用。
-              <Tag>已停用</Tag>工厂已停止运营，不再承接新订单。
-              如需新增或修改工厂信息，请联系平台运营。
+              <Tag color="green">已激活</Tag>正常运营，可承接订单。
+              <Tag color="orange">未激活</Tag>尚未激活。
+              <Tag>已停用</Tag>已停止运营，不再承接新订单。
             </p>
           </div>
         </div>
       </Modal>
-
 
 export default function BrandFactories() {
   const { token } = theme.useToken();

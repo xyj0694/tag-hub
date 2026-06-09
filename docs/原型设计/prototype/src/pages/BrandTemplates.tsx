@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Card, Table, Button, Tag, Select, Input, Space, Typography, Modal, Descriptions, Form, message, Popconfirm, InputNumber, Alert, Switch } from "antd";
+import {Card, Table, Button, Tag, Select, Input, Space, Typography, Modal, Descriptions, Form, message, Popconfirm, InputNumber, Alert} from 'antd';
 import { useNavigate } from 'react-router-dom';
 import {
   PlusOutlined, EditOutlined, CopyOutlined, EyeOutlined, ArrowLeftOutlined,
@@ -261,7 +261,6 @@ function CareLabelPreview({ fields, version }: { fields: TemplateField[]; versio
 
 // ========== 主组件 ==========
 
-      {/* ─── 使用说明书 Modal ─── */}
       <Modal
         title={<Space><BookOutlined /> 模板管理使用说明书</Space>}
         open={guideModalOpen}
@@ -270,69 +269,49 @@ function CareLabelPreview({ fields, version }: { fields: TemplateField[]; versio
         footer={<Button type="primary" onClick={() => setGuideModalOpen(false)}>关闭</Button>}
       >
         <div style={{ fontSize: 13, lineHeight: 1.9, maxHeight: '60vh', overflow: 'auto', paddingRight: 8 }}>
-          <Alert
-            title="本文档面向品牌方打单员，介绍标签模板的创建、编辑、设计、复制与删除等管理操作。"
-            type="info" showIcon style={{ marginBottom: 20, borderRadius: 6 }}
-          />
+          <Alert type="info" showIcon style={{ marginBottom: 20, borderRadius: 6 }}
+            title="本文档面向品牌方打单员，介绍标签模板的创建、设计、复制与删除等操作。" />
           <Text strong style={{ fontSize: 15 }}>一、页面概览</Text>
           <div style={{ margin: '12px 0 16px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
             <Text strong>模板列表</Text>
-            <p style={{ margin: '4px 0 0' }}>
-              页面展示本品牌下所有标签模板。每行显示模板名称、标签类型（吊牌/不干胶/洗麦）、版本号、状态（启用/已禁用）和创建时间。
-            </p>
+            <p style={{ margin: '4px 0 0' }}>展示本品牌下所有标签模板。每行显示名称、标签类型（吊牌/不干胶/洗麦）、版本号、状态和创建时间。</p>
           </div>
           <div style={{ margin: '0 0 16px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
             <Text strong>筛选与搜索</Text>
-            <p style={{ margin: '4px 0 0' }}>
-              支持按<Text code>标签类型</Text>和<Text code>状态</Text>筛选模板。搜索框支持模板名称模糊匹配。
-            </p>
+            <p style={{ margin: '4px 0 0' }}>支持按<Text code>标签类型</Text>和<Text code>状态</Text>筛选，搜索框支持模板名称模糊匹配。</p>
           </div>
           <div style={{ margin: '0 0 20px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
             <Text strong>新建模板</Text>
-            <p style={{ margin: '4px 0 0' }}>
-              点击<Button size="small" type="primary" icon={<PlusOutlined />}>新建模板</Button>，填写模板名称并选择标签类型即可创建。
-            </p>
+            <p style={{ margin: '4px 0 0' }}>点击<Button size="small" type="primary" icon={<PlusOutlined />}>新建模板</Button>，填写名称并选择标签类型即可创建。</p>
           </div>
           <Text strong style={{ fontSize: 15 }}>二、模板操作</Text>
           <div style={{ margin: '12px 0 16px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
             <Text strong>设计</Text>
-            <p style={{ margin: '4px 0 0' }}>
-              点击<Button size="small" icon={<EditOutlined />}>设计</Button>进入模板设计器，
-              可添加标签字段（如品名、尺码、成分、执行标准等），通过拖拽调整字段位置和尺寸。
-            </p>
+            <p style={{ margin: '4px 0 0' }}>点击<Button size="small" icon={<EditOutlined />}>设计</Button>进入设计器，可添加标签字段并拖拽调整布局。</p>
           </div>
           <div style={{ margin: '0 0 16px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
             <Text strong>预览 / 编辑 / 复制</Text>
             <p style={{ margin: '4px 0 0' }}>
               <Button size="small" icon={<EyeOutlined />}>预览</Button>查看模板详情和字段列表。
               <Button size="small" icon={<EditOutlined />}>编辑</Button>修改模板名称。
-              <Button size="small" icon={<CopyOutlined />}>复制</Button>基于当前模板创建副本并自动递增版本号。
+              <Button size="small" icon={<CopyOutlined />}>复制</Button>创建副本并自动递增版本号。
             </p>
           </div>
           <div style={{ margin: '0 0 20px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
             <Text strong>删除</Text>
-            <p style={{ margin: '4px 0 0' }}>
-              仅未被订单引用的模板可删除。若模板正在被订单使用，需先处理关联订单后再删除。
-            </p>
+            <p style={{ margin: '4px 0 0' }}>仅未被订单引用的模板可删除。删除后不可恢复，请谨慎操作。</p>
           </div>
           <Text strong style={{ fontSize: 15 }}>三、模板与下单的关系</Text>
           <div style={{ margin: '12px 0 16px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
             <Text strong>模板下单</Text>
-            <p style={{ margin: '4px 0 0' }}>
-              在创建订单时选择<Text code>模板下单</Text>路径，系统会根据 SKU 自动匹配对应标签类型的模板。
-              模板需处于<Text code>启用</Text>状态才会出现在匹配列表中。
-            </p>
+            <p style={{ margin: '4px 0 0' }}>创建订单时选择<Text code>模板下单</Text>，系统根据 SKU 自动匹配模板。模板需<Text code>启用</Text>状态。</p>
           </div>
           <div style={{ margin: '0 0 20px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
             <Text strong>即时下单</Text>
-            <p style={{ margin: '4px 0 0' }}>
-              选择<Text code>即时下单</Text>路径时，订单提交后状态为<Text code>待补模板</Text>，
-              需尽快为订单中的 SKU 创建模板，完成后订单才会推送至平台审核。
-            </p>
+            <p style={{ margin: '4px 0 0' }}>选择<Text code>即时下单</Text>后订单状态为<Text code>待补模板</Text>，需尽快创建模板后订单才会推送审核。</p>
           </div>
         </div>
       </Modal>
-
 
 export default function BrandTemplates() {
   const navigate = useNavigate();
@@ -350,8 +329,8 @@ export default function BrandTemplates() {
   const [createForm] = Form.useForm();
 
   const [deleteTarget, setDeleteTarget] = useState<Template | null>(null);
-  const [deleteCheckResult, setDeleteCheckResult] = useState<{ used: boolean;
-  const [guideModalOpen, setGuideModalOpen] = useState(false); orderNos: string[] }>({ used: false, orderNos: [] });
+  const [deleteCheckResult, setDeleteCheckResult] = useState<{ used: boolean; orderNos: string[] }>({ used: false, orderNos: [] });
+  const [guideModalOpen, setGuideModalOpen] = useState(false);
 
   const filtered = useMemo(() => {
     return templates
