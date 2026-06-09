@@ -146,8 +146,9 @@ export default function BrandFactories() {
               size="middle"
               pagination={{ pageSize: 10, showTotal: t => `共 ${t} 条`, showSizeChanger: true, pageSizeOptions: ['10', '20', '50'] }}
               columns={[
-                { title: '姓名', dataIndex: 'name', width: 160, render: (t: string) => <Space><UserOutlined /><Text strong>{t}</Text></Space> },
+                { title: '姓名', dataIndex: 'name', width: 100, render: (t: string) => <Space><UserOutlined /><Text strong>{t}</Text></Space> },
                 { title: '手机号', dataIndex: 'phone', width: 120 },
+                { title: '备注', dataIndex: 'remark', width: 100, render: (t?: string) => t ? <Tag>{t}</Tag> : <Text type="secondary">—</Text> },
                 {
                   title: '角色', dataIndex: 'role', width: 80,
                   render: (r: string) => r === 'admin' ? <Tag color="blue">主账号</Tag> : <Tag color="cyan">子采购</Tag>,
@@ -162,7 +163,7 @@ export default function BrandFactories() {
                   ),
                 },
                 {
-                  title: '说明', width: 300,
+                  title: '说明', width: 260,
                   render: (_: any, r: PurchaserAccount) => (
                     <Text type="secondary" style={{ fontSize: 12 }}>
                       {r.role === 'admin'
@@ -200,6 +201,9 @@ export default function BrandFactories() {
               { value: 'purchaser', label: '子采购 — 仅可查看本人订单' },
               { value: 'admin', label: '主账号 — 可查看全部订单和对账单' },
             ]} />
+          </Form.Item>
+          <Form.Item name="remark" label="备注">
+            <Input placeholder="例如：负责品类、区域等" />
           </Form.Item>
           <Form.Item name="allowBilling" label="对账权限" initialValue={false} valuePropName="checked">
             <Switch checkedChildren="允许" unCheckedChildren="禁止" />

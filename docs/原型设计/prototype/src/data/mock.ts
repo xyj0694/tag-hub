@@ -37,6 +37,7 @@ export interface PurchaserAccount {
   brandId: number;
   role: 'admin' | 'purchaser';
   allowBilling: boolean;
+  remark?: string;
 }
 
 export interface SubOrder {
@@ -261,8 +262,8 @@ export const factories: Factory[] = [
 
 // ---- 采购子账号 ----
 export const purchaserAccounts: PurchaserAccount[] = [
-  { id: 1, name: '赵采购（T恤品类）', phone: '138****7701', brandId: 1, role: 'purchaser', allowBilling: false },
-  { id: 2, name: '钱采购（外套品类）', phone: '138****7702', brandId: 1, role: 'purchaser', allowBilling: true },
+  { id: 1, name: '赵采购', phone: '138****7701', brandId: 1, role: 'purchaser', allowBilling: false, remark: 'T恤品类' },
+  { id: 2, name: '钱采购', phone: '138****7702', brandId: 1, role: 'purchaser', allowBilling: true, remark: '外套品类' },
 ];
 
 
