@@ -251,10 +251,10 @@ export default function MainLayout({ role, roleName, brands, currentBrandId, all
 
             {/* 用户菜单 */}
             <Dropdown menu={{ items: [
-                { key: 'profile', icon: <ProfileOutlined />, label: t('user.profile'), onClick: () => navigate(`/${role}/profile`) },
-                { key: 'change-password', icon: <KeyOutlined />, label: t('user.changePassword'), onClick: () => navigate(`/${role}/change-password`) },
+                { key: 'profile', icon: <ProfileOutlined />, label: t('nav.profile'), onClick: () => navigate(`/${role}/profile`) },
+                { key: 'change-password', icon: <KeyOutlined />, label: t('nav.changePassword'), onClick: () => navigate(`/${role}/change-password`) },
                 { type: 'divider' },
-                { key: 'logout', icon: <LogoutOutlined />, label: t('user.logout'), onClick: () => navigate('/') },
+                { key: 'logout', icon: <LogoutOutlined />, label: t('nav.logout'), onClick: () => navigate('/') },
               ] }}>
               <Avatar size={32} icon={<UserOutlined />} style={{ cursor: 'pointer', background: token.colorPrimary }} />
             </Dropdown>
