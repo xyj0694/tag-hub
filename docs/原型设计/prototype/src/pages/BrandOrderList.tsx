@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Card, Table, Button, Tag, Select, DatePicker, Space, Typography, Input, Popconfirm, message } from 'antd';
-import { DownloadOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import { Card, Table, Button, Tag, Select, DatePicker, Space, Typography, Input, Popconfirm, message } , Alert } from "antd";
+import { DownloadOutlined, PlusOutlined, SearchOutlined, BookOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { orders as mockOrders, purchaserAccounts } from '../data/mock';
 import { useBrandContext } from '../data/BrandContext';
@@ -27,6 +27,91 @@ const statusMap: Record<string, { color: string; text: string }> = {
 
 const typeColors: Record<string, string> = { '大货单': 'blue', '补单': 'orange', '免费单': 'green' };
 
+      {/* ─── 使用说明书 Modal ─── */}
+      <Modal
+        title={<Space><BookOutlined /> 订单管理使用说明书</Space>}
+        open={guideModalOpen}
+        onCancel={() => setGuideModalOpen(false)}
+        width={800}
+        footer={<Button type="primary" onClick={() => setGuideModalOpen(false)}>关闭</Button>}
+      >
+        <div style={{ fontSize: 13, lineHeight: 1.9, maxHeight: '60vh', overflow: 'auto', paddingRight: 8 }}>
+          <Alert
+            title="本文档面向品牌方采购人员，介绍订单的创建、查看、导出与取消等操作流程。"
+            type="info" showIcon style={{ marginBottom: 20, borderRadius: 6 }}
+          />
+          <Text strong style={{ fontSize: 15 }}>一、页面概览</Text>
+          <div style={{ margin: '12px 0 16px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
+            <Text strong>创建订单</Text>
+            <p style={{ margin: '4px 0 0' }}>
+              点击右上角<Button type="primary" size="small" icon={<PlusOutlined />}>创建订单</Button>按钮，进入下单页面。
+              系统支持两种下单路径：<Text code>模板下单</Text>（选择已有模板填写 SKU 和数量）与
+              <Text code>即时下单</Text>（直接填写 SKU 和数量，模板后续补齐）。
+            </p>
+          </div>
+          <div style={{ margin: '0 0 16px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
+            <Text strong>筛选与搜索</Text>
+            <p style={{ margin: '4px 0 0' }}>
+              支持按<Text code>订单状态</Text>、<Text code>订单类型</Text>（大货单/补单/免费单）、
+              <Text code>创建时间</Text>筛选。搜索框支持订单号、品牌名、工厂名模糊匹配。
+            </p>
+          </div>
+          <div style={{ margin: '0 0 20px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
+            <Text strong>导出 Excel</Text>
+            <p style={{ margin: '4px 0 0' }}>
+              点击<Button size="small" icon={<DownloadOutlined />}>导出 Excel</Button>可导出当前筛选结果，
+              导出字段包括订单号、品牌、工厂、类型、标签类型、数量、状态、创建时间。
+            </p>
+          </div>
+          <Text strong style={{ fontSize: 15 }}>二、订单状态说明</Text>
+          <div style={{ overflow: 'auto', margin: '12px 0 20px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+              <thead>
+                <tr style={{ background: token.colorFillQuaternary }}>
+                  <th style={{ padding: '6px 10px', textAlign: 'left', border: `1px solid ${token.colorBorderSecondary}` }}>状态</th>
+                  <th style={{ padding: '6px 10px', textAlign: 'left', border: `1px solid ${token.colorBorderSecondary}` }}>含义</th>
+                  <th style={{ padding: '6px 10px', textAlign: 'left', border: `1px solid ${token.colorBorderSecondary}` }}>说明</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  ['待审核', '已提交，等待平台运营审核', '可查看详情；审核通过前可取消'],
+                  ['已审核', '运营已审核通过', '等待运营拆单转单'],
+                  ['已拆分', '运营已将订单拆分到供应商', '各子订单独立流转'],
+                  ['生产中', '供应商正在生产标签', '可查看子订单生产进度'],
+                  ['部分发货', '部分子订单已发货', '可追踪物流信息'],
+                  ['已发货', '全部子订单已发货', '等待签收'],
+                  ['已签收', '订单已完成签收', '进入对账流程'],
+                  ['已驳回', '运营驳回了订单', '查看驳回原因，修改后重新提交'],
+                  ['已取消', '订单已取消', '由品牌方或运营方取消'],
+                ].map(([s, m, d]) => (
+                  <tr key={s}>
+                    <td style={{ padding: '6px 10px', border: `1px solid ${token.colorBorderSecondary}` }}><Tag>{s}</Tag></td>
+                    <td style={{ padding: '6px 10px', border: `1px solid ${token.colorBorderSecondary}` }}>{m}</td>
+                    <td style={{ padding: '6px 10px', border: `1px solid ${token.colorBorderSecondary}` }}>{d}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <Text strong style={{ fontSize: 15 }}>三、操作说明</Text>
+          <div style={{ margin: '12px 0 16px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
+            <Text strong>查看详情</Text>
+            <p style={{ margin: '4px 0 0' }}>
+              点击订单行的<Button size="small" type="link">详情</Button>按钮，可查看订单基本信息、子订单生产进度和状态时间线。
+            </p>
+          </div>
+          <div style={{ margin: '0 0 20px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
+            <Text strong>取消订单</Text>
+            <p style={{ margin: '4px 0 0' }}>
+              仅在<Text code>待审核</Text>状态下可取消订单。点击<Button size="small" type="link" danger>取消</Button>后确认即可。
+              已审核或后续状态的订单需联系平台运营处理。
+            </p>
+          </div>
+        </div>
+      </Modal>
+
+
 export default function BrandOrderList() {
   const navigate = useNavigate();
   const { currentBrandId, currentBrandName } = useBrandContext();
@@ -36,10 +121,13 @@ export default function BrandOrderList() {
 
   // 筛选状态
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [guideModalOpen, setGuideModalOpen] = useState(false);
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [guideModalOpen, setGuideModalOpen] = useState(false);
   const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(null);
   const [searchText, setSearchText] = useState('');
   const [purchaserFilter, setPurchaserFilter] = useState<string>('all');
+  const [guideModalOpen, setGuideModalOpen] = useState(false);
 
   // 取消订单
   const handleCancel = (orderId: number) => {
@@ -152,7 +240,7 @@ export default function BrandOrderList() {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <Title level={4} style={{ margin: 0 }}>订单列表</Title>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><Title level={4} style={{ marginTop: 0, marginBottom: 0 }}>订单列表</Title><Button icon={<BookOutlined />} onClick={() => setGuideModalOpen(true)}>使用说明书</Button></div>
         <Space>
           <Button icon={<DownloadOutlined />} onClick={handleExport}>导出 Excel</Button>
           <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/brand/order-create')}>创建订单</Button>
