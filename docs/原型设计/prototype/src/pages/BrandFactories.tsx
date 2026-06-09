@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Card, Table, Tag, Input, Typography, Tabs, Switch, Space, Badge, theme } from 'antd';
-import { CheckCircleOutlined, ClockCircleOutlined, StopOutlined, TeamOutlined, BankOutlined, UserOutlined } from '@ant-design/icons';
+import { Card, Table, Tag, Input, Typography, Tabs, Switch, Space, Badge, Button, Modal, Form, Select, Alert, theme } from "antd";
+import { CheckCircleOutlined, ClockCircleOutlined, StopOutlined, TeamOutlined, BankOutlined, UserOutlined, PlusOutlined, EyeOutlined, EyeInvisibleOutlined } from "@ant-design/icons";
 import { factories, purchaserAccounts } from '../data/mock';
 import type { Factory, PurchaserAccount } from '../data/mock';
 import { useBrandContext } from '../data/BrandContext';
@@ -18,19 +18,28 @@ export default function BrandFactories() {
   const { currentBrandId, currentBrandName } = useBrandContext();
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<string>('factories');
+  const [factoryVisibility, setFactoryVisibility] = useState<Record<number, boolean>>(() => {
+    const map: Record<number, boolean> = {};
+    factories.forEach(f => { map[f.id] = f.visibleToBrand; });
+    return map;
+  });
+
+  // 新增采购账号弹窗
+  const [addOpen, setAddOpen] = useState(false);
+  const [addForm] = Form.useForm();
 
   // 工厂过滤
   const filteredFactories = useMemo(() => {
     let list: Factory[] = [...factories];
     if (currentBrandId !== 0) {
-      list = list.filter(f => f.brandName === currentBrandName);
+      list = list.filter(f => f.brandId === currentBrandId || f.brandId === null);
     }
     if (search) {
       const q = search.toLowerCase();
       list = list.filter(f => f.name.includes(q) || f.contact.includes(q) || f.phone.includes(q));
     }
     return list;
-  }, [currentBrandId, currentBrandName, search]);
+  }, [currentBrandId, search]);
 
   // 采购账号过滤
   const filteredPurchasers = useMemo(() => {
@@ -44,6 +53,20 @@ export default function BrandFactories() {
     }
     return list;
   }, [currentBrandId, search]);
+
+  const handleToggleVisibility = (factoryId: number, checked: boolean) => {
+    setFactoryVisibility(prev => ({ ...prev, [factoryId]: checked }));
+    // TODO: 实际接入后端 API 后，此处应调用接口保存可见性配置
+  };
+
+  const handleAddPurchaser = () => {
+    addForm.validateFields().then(values => {
+      // TODO: 实际接入后端 API 后，此处应调用接口创建采购账号
+      console.log('新增采购账号:', values);
+      addForm.resetFields();
+      setAddOpen(false);
+    });
+  };
 
   return (
     <div>
@@ -60,7 +83,7 @@ export default function BrandFactories() {
             },
             {
               key: 'purchasers',
-              label: <span><UserOutlined /> 采购账号 <Badge count={filteredPurchasers.length} size="small" style={{ marginLeft: 8 }} /></span>,
+              label: <span><TeamOutlined /> 采购账号 <Badge count={filteredPurchasers.length} size="small" style={{ marginLeft: 8 }} /></span>,
             },
           ]}
         />
@@ -70,6 +93,12 @@ export default function BrandFactories() {
 
         {activeTab === 'factories' ? (
           <>
+            <Alert type="info" showIcon icon={<EyeOutlined />}
+              title="工厂由平台方统一管理"
+              description="您可控制各工厂对本品牌订单的可见性。如需新增或修改工厂信息，请联系平台运营。"
+              style={{ marginBottom: 16, borderRadius: 6 }}
+            />
+
             <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
               <div style={{ flex: 1, minWidth: 120, background: token.colorFillQuaternary, borderRadius: 8, padding: '10px 14px' }}>
                 <Text type="secondary" style={{ fontSize: 12 }}>工厂总数</Text>
@@ -79,13 +108,13 @@ export default function BrandFactories() {
                 <Text type="secondary" style={{ fontSize: 12, color: '#52c41a' }}>已激活</Text>
                 <br /><Text strong style={{ fontSize: 18, color: '#52c41a' }}>{filteredFactories.filter(f => f.status === '启用').length}</Text>
               </div>
-              <div style={{ flex: 1, minWidth: 120, background: '#fff7e6', borderRadius: 8, padding: '10px 14px', border: '1px solid #ffd591' }}>
-                <Text type="secondary" style={{ fontSize: 12, color: '#fa8c16' }}>未激活</Text>
-                <br /><Text strong style={{ fontSize: 18, color: '#fa8c16' }}>{filteredFactories.filter(f => f.status === '未激活').length}</Text>
+              <div style={{ flex: 1, minWidth: 120, background: '#e6f7ff', borderRadius: 8, padding: '10px 14px', border: '1px solid #91d5ff' }}>
+                <Text type="secondary" style={{ fontSize: 12, color: '#1677ff' }}>可见</Text>
+                <br /><Text strong style={{ fontSize: 18, color: '#1677ff' }}>{Object.values(factoryVisibility).filter(Boolean).length}</Text>
               </div>
               <div style={{ flex: 1, minWidth: 120, background: token.colorFillQuaternary, borderRadius: 8, padding: '10px 14px' }}>
-                <Text type="secondary" style={{ fontSize: 12 }}>已停用</Text>
-                <br /><Text strong style={{ fontSize: 18 }}>{filteredFactories.filter(f => f.status === '停用').length}</Text>
+                <Text type="secondary" style={{ fontSize: 12 }}>隐藏</Text>
+                <br /><Text strong style={{ fontSize: 18 }}>{Object.values(factoryVisibility).filter(v => !v).length}</Text>
               </div>
             </div>
 
@@ -108,16 +137,29 @@ export default function BrandFactories() {
                 { title: '地址', dataIndex: 'address', ellipsis: true, width: 200 },
                 { title: '订单数', dataIndex: 'orderCount', width: 70, align: 'right' as const,
                   render: (v: number) => v > 0 ? <Text strong>{v.toLocaleString()}</Text> : <Text type="secondary">—</Text>,
-                  sorter: (a: Factory, b: Factory) => a.orderCount - b.orderCount,
                 },
-                { title: '最近登录', dataIndex: 'lastLoginAt', width: 130,
-                  render: (t: string) => <Text type="secondary" style={{ fontSize: 12 }}>{t}</Text>,
+                {
+                  title: '可见', dataIndex: 'id', width: 80, align: 'center' as const,
+                  render: (id: number) => (
+                    <Switch
+                      checked={factoryVisibility[id] ?? false}
+                      onChange={(checked) => handleToggleVisibility(id, checked)}
+                      checkedChildren={<EyeOutlined />}
+                      unCheckedChildren={<EyeInvisibleOutlined />}
+                      size="small"
+                    />
+                  ),
                 },
               ]}
             />
           </>
         ) : (
           <>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <Text type="secondary" style={{ fontSize: 12 }}>品牌方自主管理采购账号，用于授权内部采购员下单、对账等操作</Text>
+              <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => setAddOpen(true)}>新增采购账号</Button>
+            </div>
+
             <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
               <div style={{ flex: 1, minWidth: 120, background: token.colorFillQuaternary, borderRadius: 8, padding: '10px 14px' }}>
                 <Text type="secondary" style={{ fontSize: 12 }}>采购账号总数</Text>
@@ -173,6 +215,34 @@ export default function BrandFactories() {
           </>
         )}
       </Card>
+
+      {/* 新增采购账号弹窗 */}
+      <Modal
+        title="新增采购账号"
+        open={addOpen}
+        onOk={handleAddPurchaser}
+        onCancel={() => { setAddOpen(false); addForm.resetFields(); }}
+        okText="确认创建"
+        cancelText="取消"
+      >
+        <Form form={addForm} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item name="name" label="采购员姓名" rules={[{ required: true, message: '请输入采购员姓名' }]}>
+            <Input placeholder="例如：赵采购" />
+          </Form.Item>
+          <Form.Item name="phone" label="手机号" rules={[{ required: true, message: '请输入手机号' }]}>
+            <Input placeholder="例如：138****1234" />
+          </Form.Item>
+          <Form.Item name="role" label="角色" initialValue="purchaser">
+            <Select options={[
+              { value: 'purchaser', label: '子采购 — 仅可查看本人订单' },
+              { value: 'admin', label: '主账号 — 可查看全部订单和对账单' },
+            ]} />
+          </Form.Item>
+          <Form.Item name="allowBilling" label="对账权限" initialValue={false} valuePropName="checked">
+            <Switch checkedChildren="允许" unCheckedChildren="禁止" />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 }

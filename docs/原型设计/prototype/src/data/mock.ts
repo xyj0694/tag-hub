@@ -57,6 +57,7 @@ export interface Factory {
   orderCount: number; lastLoginAt: string;
   brandName: string;
   brandId: number | null; // null = 独立工厂，不挂靠品牌
+  visibleToBrand: boolean; // 品牌方可见性，由平台方配置
 }
 
 export interface CustomerCompany {
@@ -249,13 +250,13 @@ export const suppliers: Supplier[] = [
 
 // ---- 工厂（成衣厂） ----
 export const factories: Factory[] = [
-  { id: 1, name: '杭州成衣一厂', contact: '李明辉', phone: '139****5678', email: 'liminghui@example.com', address: '浙江省杭州市萧山区经济技术开发区桥南区块128号', status: '启用', orderCount: 47, lastLoginAt: '2026-06-06 09:15', brandName: '波司登（Bosideng）', brandId: 1 },
-  { id: 2, name: '宁波成衣二厂', contact: '王建国', phone: '137****9012', email: 'wangjianguo@example.com', address: '浙江省宁波市鄞州区姜山镇明光路88号', status: '启用', orderCount: 32, lastLoginAt: '2026-06-05 14:30', brandName: '波司登（Bosideng）', brandId: 1 },
-  { id: 3, name: '温州成衣三厂', contact: '陈志强', phone: '136****2345', email: 'chenzhiqiang@example.com', address: '浙江省温州市瓯海区娄桥工业区55号', status: '未激活', orderCount: 0, lastLoginAt: '—', brandName: '波司登（Bosideng）', brandId: 1 },
-  { id: 4, name: '嘉兴成衣四厂', contact: '赵永刚', phone: '135****6789', email: 'zhaoyonggang@example.com', address: '浙江省嘉兴市南湖区余新镇工业园12号', status: '停用', orderCount: 12, lastLoginAt: '2026-03-20 10:00', brandName: '波司登（Bosideng）', brandId: 1 },
-  { id: 5, name: '苏州成衣五厂', contact: '孙海龙', phone: '134****2345', email: 'sunhailong@example.com', address: '江苏省苏州市吴江区盛泽镇纺织工业园', status: '启用', orderCount: 58, lastLoginAt: '2026-06-06 08:22', brandName: '雪中飞（Snow Flying）', brandId: 2 },
-  { id: 6, name: '无锡成衣六厂', contact: '周永强', phone: '133****6789', email: 'zhouyongqiang@example.com', address: '江苏省无锡市锡山区东港镇工业园区', status: '未激活', orderCount: 0, lastLoginAt: '—', brandName: '雪中飞（Snow Flying）', brandId: 2 },
-  { id: 7, name: '福建晋江成衣厂', contact: '林志伟', phone: '159****3344', email: 'linzw@jinjiang-garment.cn', address: '福建省泉州市晋江市陈埭镇鞋都路88号', status: '启用', orderCount: 15, lastLoginAt: '2026-06-06 11:00', brandName: '—', brandId: null },
+  { id: 1, name: '杭州成衣一厂', contact: '李明辉', phone: '139****5678', email: 'liminghui@example.com', address: '浙江省杭州市萧山区经济技术开发区桥南区块128号', status: '启用', orderCount: 47, lastLoginAt: '2026-06-06 09:15', brandName: '波司登（Bosideng）', brandId: 1, visibleToBrand: true },
+  { id: 2, name: '宁波成衣二厂', contact: '王建国', phone: '137****9012', email: 'wangjianguo@example.com', address: '浙江省宁波市鄞州区姜山镇明光路88号', status: '启用', orderCount: 32, lastLoginAt: '2026-06-05 14:30', brandName: '波司登（Bosideng）', brandId: 1, visibleToBrand: true },
+  { id: 3, name: '温州成衣三厂', contact: '陈志强', phone: '136****2345', email: 'chenzhiqiang@example.com', address: '浙江省温州市瓯海区娄桥工业区55号', status: '未激活', orderCount: 0, lastLoginAt: '—', brandName: '波司登（Bosideng）', brandId: 1, visibleToBrand: false },
+  { id: 4, name: '嘉兴成衣四厂', contact: '赵永刚', phone: '135****6789', email: 'zhaoyonggang@example.com', address: '浙江省嘉兴市南湖区余新镇工业园12号', status: '停用', orderCount: 12, lastLoginAt: '2026-03-20 10:00', brandName: '波司登（Bosideng）', brandId: 1, visibleToBrand: false },
+  { id: 5, name: '苏州成衣五厂', contact: '孙海龙', phone: '134****2345', email: 'sunhailong@example.com', address: '江苏省苏州市吴江区盛泽镇纺织工业园', status: '启用', orderCount: 58, lastLoginAt: '2026-06-06 08:22', brandName: '雪中飞（Snow Flying）', brandId: 2, visibleToBrand: true },
+  { id: 6, name: '无锡成衣六厂', contact: '周永强', phone: '133****6789', email: 'zhouyongqiang@example.com', address: '江苏省无锡市锡山区东港镇工业园区', status: '未激活', orderCount: 0, lastLoginAt: '—', brandName: '雪中飞（Snow Flying）', brandId: 2, visibleToBrand: false },
+  { id: 7, name: '福建晋江成衣厂', contact: '林志伟', phone: '159****3344', email: 'linzw@jinjiang-garment.cn', address: '福建省泉州市晋江市陈埭镇鞋都路88号', status: '启用', orderCount: 15, lastLoginAt: '2026-06-06 11:00', brandName: '—', brandId: null, visibleToBrand: false },
 ];
 
 // ---- 采购子账号 ----
