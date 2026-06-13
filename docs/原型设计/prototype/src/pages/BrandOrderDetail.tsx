@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Descriptions, Table, Tag, Button, Space, Modal, Select, Typography, message, Alert, Timeline, theme } from 'antd';
-import { ArrowLeftOutlined, CheckCircleOutlined, ClockCircleOutlined, SyncOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, CheckCircleOutlined, ClockCircleOutlined, SyncOutlined, CloseCircleOutlined, DownloadOutlined } from '@ant-design/icons';
 import { orders as mockOrders } from '../data/mock';
 
 const { Title, Text } = Typography;
@@ -46,6 +46,8 @@ export default function BrandOrderDetail() {
   const order = mockOrders.find(o => o.id === id);
 
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [signedDocOpen, setSignedDocOpen] = useState(false);
+  const [signedDocData, setSignedDocData] = useState<any>(null);
 
   if (!order) return (
     <div style={{ textAlign: 'center', padding: 80 }}>
@@ -294,14 +296,40 @@ export default function BrandOrderDetail() {
                     {hasSigned && (
                       <div style={{ marginTop: 8, background: token.colorFillQuaternary, borderRadius: 6, padding: '8px 12px' }}>
                         {order.subOrders.filter(so => so.status === '已签收').map(so => (
-                          <div key={so.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '3px 0', fontSize: 12 }}>
-                            <Text code style={{ fontSize: 11 }}>{so.orderNo.split('-').slice(0, 3).join('-')}</Text>
-                            <Text type="secondary">{so.sku}</Text>
+                          <div key={so.sku} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '3px 0', fontSize: 12 }}>
+                            <Text code style={{ fontSize: 11 }}>{so.sku}</Text>
                             <div style={{ flex: 1 }} />
                             <Text>签收 {so.shippedQuantity.toLocaleString()} 张</Text>
                             <Tag color="success" style={{ fontSize: 10, lineHeight: '16px', margin: 0 }}>✓</Tag>
                           </div>
                         ))}
+                        {/* 回签单 */}
+                        {(() => {
+                          const signedShipments = order.subOrders
+                            .filter(so => so.status === '已签收')
+                            .flatMap((so: any) => (so.shipments || []))
+                            .filter((sh: any) => sh.signedDocNo);
+                          if (signedShipments.length === 0) return null;
+                          return (
+                            <div style={{ marginTop: 8, paddingTop: 8, borderTop: `1px dashed ${token.colorBorderSecondary}` }}>
+                              <Text type="secondary" style={{ fontSize: 11, display: 'block', marginBottom: 6 }}>回签单</Text>
+                              {signedShipments.map((sh: any, idx: number) => (
+                                <div key={sh.signedDocNo || idx} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 0', fontSize: 11 }}>
+                                  <Text code style={{ fontSize: 10 }}>{sh.signedDocNo}</Text>
+                                  <Text type="secondary" style={{ fontSize: 10 }}>{sh.signedDocType === 'pdf' ? 'PDF' : '图片'}</Text>
+                                  <Button type="link" size="small" style={{ fontSize: 10, padding: 0, height: 'auto' }}
+                                    onClick={() => { setSignedDocData(sh); setSignedDocOpen(true); }}>
+                                    查看回签单
+                                  </Button>
+                                  <Button type="link" size="small" style={{ fontSize: 10, padding: 0, height: 'auto' }}
+                                    onClick={() => message.success(`回签单 ${sh.signedDocNo} 已开始下载（演示）`)}>
+                                    下载
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        })()}
                       </div>
                     )}
                   </div>
@@ -381,6 +409,138 @@ export default function BrandOrderDetail() {
           />
         </Card>
       )}
+
+      {/* 回签单预览弹窗 */}
+      <Modal
+        title={<Space>回签单预览 <Tag color="green">{signedDocData?.signedDocNo}</Tag></Space>}
+        open={signedDocOpen}
+        onCancel={() => { setSignedDocOpen(false); setSignedDocData(null); }}
+        width={800}
+        footer={
+          <Space>
+            <Button icon={<DownloadOutlined />} onClick={() => message.success(`回签单 ${signedDocData?.signedDocNo} 已开始下载（演示）`)}>
+              下载回签单
+            </Button>
+            <Button onClick={() => { setSignedDocOpen(false); setSignedDocData(null); }}>关闭</Button>
+          </Space>
+        }
+      >
+        {signedDocData && (
+          <div>
+            <div style={{
+              background: '#d5cdc5', borderRadius: 8, overflow: 'hidden',
+              marginBottom: 20, position: 'relative',
+              boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.06)',
+            }}>
+              <div style={{
+                background: 'linear-gradient(135deg, #e8e0d8 0%, #d5cdc5 30%, #e0d8cf 60%, #c8c0b5 100%)',
+                padding: '32px 24px 40px', minHeight: 400,
+                display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+                position: 'relative',
+              }}>
+                <div style={{
+                  background: '#fffef9', borderRadius: 3,
+                  padding: '32px 28px', width: '100%', maxWidth: 560,
+                  boxShadow: '2px 4px 16px rgba(0,0,0,0.18), 0 1px 3px rgba(0,0,0,0.08)',
+                  transform: 'rotate(-0.8deg)',
+                  position: 'relative',
+                  border: '1px solid #e0dcd0',
+                }}>
+                  <div style={{ textAlign: 'center', borderBottom: '2px solid #333', paddingBottom: 16, marginBottom: 20 }}>
+                    <div style={{ fontSize: 22, fontWeight: 800, color: '#1a1a1a', letterSpacing: 6, fontFamily: 'serif' }}>
+                      签 收 回 执 单
+                    </div>
+                    <div style={{ fontSize: 10, color: '#888', marginTop: 6 }}>SIGNED RECEIPT CONFIRMATION</div>
+                  </div>
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ fontSize: 9, color: '#888', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 }}>Receipt No. 回签单号</div>
+                    <div style={{
+                      fontSize: 16, fontWeight: 700, fontFamily: 'monospace',
+                      letterSpacing: 2, color: '#111', background: '#f8f8f6',
+                      padding: '4px 10px', borderRadius: 2, border: '1px dashed #ccc',
+                      textAlign: 'center',
+                    }}>
+                      {signedDocData.signedDocNo}
+                    </div>
+                  </div>
+                  <Divider style={{ margin: '0 0 16px', borderStyle: 'dashed' }} />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+                    <div>
+                      <div style={{ fontSize: 9, color: '#888', marginBottom: 4 }}>关联订单</div>
+                      <div style={{ fontSize: 12, fontWeight: 600 }}>{order.orderNo}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 9, color: '#888', marginBottom: 4 }}>快递单号</div>
+                      <div style={{ fontSize: 12, fontWeight: 600, fontFamily: 'monospace' }}>{signedDocData.platformTrackingNo || signedDocData.trackingNo}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 9, color: '#888', marginBottom: 4 }}>发货数量</div>
+                      <div style={{ fontSize: 12, fontWeight: 600 }}>{signedDocData.quantity?.toLocaleString()} 张</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 9, color: '#888', marginBottom: 4 }}>签收时间</div>
+                      <div style={{ fontSize: 12, fontWeight: 600 }}>{signedDocData.signedAt || '—'}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 9, color: '#888', marginBottom: 4 }}>签收方</div>
+                      <div style={{ fontSize: 12, fontWeight: 600 }}>{order.brandName}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 9, color: '#888', marginBottom: 4 }}>签收地址</div>
+                      <div style={{ fontSize: 11, lineHeight: 1.5 }}>{order.shippingAddress}</div>
+                    </div>
+                  </div>
+                  <Divider style={{ margin: '0 0 16px', borderStyle: 'dashed' }} />
+                  <div style={{ background: '#f9f9f6', borderRadius: 3, padding: '12px 16px', marginBottom: 12, border: '1px solid #eee' }}>
+                    <div style={{ fontSize: 9, color: '#888', marginBottom: 4 }}>确认内容</div>
+                    <div style={{ fontSize: 11, lineHeight: 1.6 }}>
+                      本人确认已收到上述订单全部货品，数量核对无误，品质验收合格。
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 24 }}>
+                    <div>
+                      <div style={{ fontSize: 9, color: '#888', marginBottom: 2 }}>签收人</div>
+                      <div style={{ fontSize: 12, fontWeight: 500 }}>{order.contact}</div>
+                      <div style={{ fontSize: 9, color: '#999', marginTop: 2 }}>{order.phone}</div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{
+                        width: 72, height: 72, borderRadius: '50%', border: '2px solid #c00',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        transform: 'rotate(-12deg)', opacity: 0.8,
+                      }}>
+                        <div style={{ textAlign: 'center', lineHeight: 1.2 }}>
+                          <div style={{ fontSize: 8, color: '#c00', fontWeight: 700 }}>已签收</div>
+                          <div style={{ fontSize: 7, color: '#c00' }}>RECEIVED</div>
+                        </div>
+                      </div>
+                      {signedDocData.signedAt && (
+                        <div style={{ fontSize: 9, color: '#999', marginTop: 4 }}>{signedDocData.signedAt}</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <Card size="small" title={<Space><Tag color="blue" style={{ fontSize: 10 }}>系统关联</Tag>回签单信息</Space>} style={{ borderRadius: 6 }}>
+              <Descriptions size="small" column={2}>
+                <Descriptions.Item label="回签单号"><Text code>{signedDocData.signedDocNo}</Text></Descriptions.Item>
+                <Descriptions.Item label="文件类型">
+                  <Tag color={signedDocData.signedDocType === 'pdf' ? 'red' : 'blue'}>{signedDocData.signedDocType === 'pdf' ? 'PDF 文档' : '图片'}</Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="关联订单"><Text code style={{ fontSize: 11 }}>{order.orderNo}</Text></Descriptions.Item>
+                <Descriptions.Item label="上传时间">{signedDocData.signedAt || '—'}</Descriptions.Item>
+              </Descriptions>
+            </Card>
+            <Alert
+              type="info" showIcon
+              title="上方为平台方/供应商上传的回签单原稿"
+              description="回签单由签收方（品牌方）确认签收后生成，作为收货确认凭证。如需原始电子件请联系平台客服。"
+              style={{ borderRadius: 6, marginTop: 12 }}
+            />
+          </div>
+        )}
+      </Modal>
 
       {/* 取消订单弹窗 */}
       <Modal title="取消订单" open={cancelOpen} onCancel={() => setCancelOpen(false)}
