@@ -4,6 +4,7 @@ import MainLayout from './layouts/MainLayout';
 import { brands as mockBrands } from './data/mock';
 import { orders as mockOrders } from './data/mock';
 import { BrandContext } from './data/BrandContext';
+import { BrandConfigProvider } from './data/BrandConfigContext';
 import { OrderContext } from './data/OrderContext';
 import Login from './pages/Login';
 import ProfilePage from './pages/ProfilePage';
@@ -18,7 +19,6 @@ import BrandOrderList from './pages/BrandOrderList';
 import BrandOrderDetail from './pages/BrandOrderDetail';
 import BrandFactories from './pages/BrandFactories';
 import BrandBillings from './pages/BrandBillings';
-import BrandDataImport from './pages/BrandDataImport';
 import OpsFactories from './pages/OpsFactories';
 
 // Ops pages
@@ -31,6 +31,10 @@ import OpsCustomerCompanies from "./pages/OpsCustomerCompanies";
 import OpsOrderDetail from "./pages/OpsOrderDetail";
 import OpsBillings from './pages/OpsBillings';
 import OpsSupplierDataReview from './pages/OpsSupplierDataReview';
+import OpsSystemConfig from './pages/config/OpsSystemConfig';
+import OpsBusinessConfig from './pages/config/OpsBusinessConfig';
+import OpsBrandConfig from './pages/config/OpsBrandConfig';
+import OpsSupplierConfig from './pages/config/OpsSupplierConfig';
 
 // Supplier pages
 import SupplierDashboard from './pages/SupplierDashboard';
@@ -76,6 +80,7 @@ function OpsLayoutWrapper() {
 
 export default function App() {
   return (
+    <BrandConfigProvider>
     <Routes>
       <Route path="/" element={<Login />} />
 
@@ -89,7 +94,6 @@ export default function App() {
         <Route path="orders" element={<BrandOrderList />} />
         <Route path="orders/:id" element={<BrandOrderDetail />} />
         <Route path="factories" element={<BrandFactories />} />
-        <Route path="data-import" element={<BrandDataImport />} />
         <Route path="billings" element={<BrandBillings />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="change-password" element={<ChangePasswordPage />} />
@@ -108,6 +112,10 @@ export default function App() {
         <Route path="epc-rules" element={<OpsEpcRules />} />
         <Route path="supplier-review" element={<OpsSupplierDataReview />} />
         <Route path="billings" element={<OpsBillings />} />
+        <Route path="config/system" element={<OpsSystemConfig />} />
+        <Route path="config/business" element={<OpsBusinessConfig />} />
+        <Route path="config/brand" element={<OpsBrandConfig />} />
+        <Route path="config/supplier" element={<OpsSupplierConfig />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="change-password" element={<ChangePasswordPage />} />
       </Route>
@@ -127,5 +135,6 @@ export default function App() {
         <Route path="change-password" element={<ChangePasswordPage />} />
       </Route>
     </Routes>
+    </BrandConfigProvider>
   );
 }

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Card, Table, Button, Tag, DatePicker, Space, Typography, message, Select, Modal, Popconfirm, Popover, Alert, theme } from 'antd';
+import { Card, Table, Button, Tag, DatePicker, Space, Typography, message, Select, Modal, Popconfirm, Popover, Alert, theme, Segmented } from 'antd';
 import { DownloadOutlined, EyeOutlined, FilePdfOutlined, FileImageOutlined, PaperClipOutlined, CheckCircleOutlined, ExclamationCircleOutlined, ClockCircleOutlined, PrinterOutlined } from '@ant-design/icons';
 import { brandBillings as mockBillings, purchaserAccounts } from '../data/mock';
 import { useBrandContext } from '../data/BrandContext';
@@ -22,9 +22,12 @@ export default function BrandBillings() {
   // 筛选状态
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [dateRange, setDateRange] = useState<[any, any] | null>(null);
+  const [settlementModeFilter, setSettlementModeFilter] = useState<string>('all');
   const [billings, setBillings] = useState<BillingItem[]>(mockBillings);
   const [detailOpen, setDetailOpen] = useState<BillingItem | null>(null);
-  const [previewFile, setPreviewFile] = useState<{ name: string; type: 'image' | 'pdf' } | null>(null);
+  const [detailViewMode, setDetailViewMode] = useState<'grouped' | 'tree'>('grouped');
+  const [previewFile, setPreviewFile] = useState<{ signedDocNo: string; batchNo: string; shippedAt: string; signedAt: string; supTrackingNo: string; platformTrackingNo: string; } | null>(null);
+  const [waybillPreview, setWaybillPreview] = useState<{ trackingNo: string; batchNo: string; shippedAt: string; } | null>(null);
   const [simulatedUser, setSimulatedUser] = useState<string>('admin');
   const currentPurchaser = simulatedUser === 'admin' ? null : purchaserAccounts.find(p => p.name === simulatedUser);
   const hasBillingAccess = simulatedUser === 'admin' || (currentPurchaser?.allowBilling ?? false);
@@ -40,6 +43,11 @@ export default function BrandBillings() {
 
     if (statusFilter !== 'all') {
       list = list.filter(b => b.status === statusFilter);
+    }
+
+    // 结算周期筛选
+    if (settlementModeFilter !== 'all') {
+      list = list.filter(b => (b.settlementMode || 'monthly') === settlementModeFilter);
     }
 
     // 日期范围筛选
@@ -62,7 +70,7 @@ export default function BrandBillings() {
     });
 
     return list;
-  }, [billings, currentBrandId, currentBrandName, statusFilter, dateRange]);
+  }, [billings, currentBrandId, currentBrandName, statusFilter, dateRange, settlementModeFilter]);
 
   // 统计
   const totalAmount = filteredBillings.reduce((s, b) => s + b.totalAmount, 0);
@@ -85,86 +93,214 @@ export default function BrandBillings() {
     message.success(`对账单 ${billing.billingNo} 已确认`);
   };
 
-  const detailColumns = [
-    { title: '父订单号', dataIndex: 'parentOrderNo', width: 160, render: (t: string) => <Text code style={{ fontSize: 11 }}>{t}</Text> },
-    { title: '子订单号', dataIndex: 'subOrderNo', width: 170, render: (t: string) => <Text code style={{ fontSize: 11 }}>{t}</Text> },
+  // ─── 对账明细：按采购订单+SKU 归并 ───
+  const groupedDetailData = useMemo(() => {
+    if (!detailOpen) return [];
+    const items = detailOpen.items || [];
+    const orderMap = new Map<string, Map<string, { sku: string; productName: string; unitPrice: number; quantity: number; amount: number; batches: any[] }>>();
+    for (const item of items) {
+      const po = item.parentOrderNo;
+      const sku = item.sku;
+      if (!orderMap.has(po)) orderMap.set(po, new Map());
+      const skuMap = orderMap.get(po)!;
+      if (!skuMap.has(sku)) {
+        skuMap.set(sku, { sku, productName: item.productName, unitPrice: item.unitPrice, quantity: 0, amount: 0, batches: [] });
+      }
+      const agg = skuMap.get(sku)!;
+      agg.quantity += item.quantity;
+      agg.amount += item.amount;
+      agg.batches.push(...(item.batches || []));
+    }
+    const rows: any[] = [];
+    for (const [po, skuMap] of orderMap) {
+      const count = skuMap.size;
+      let first = true;
+      for (const [, agg] of skuMap) {
+        rows.push({ ...agg, parentOrderNo: po, _orderFirst: first, _orderRowCount: count, key: `${po}-${agg.sku}` });
+        first = false;
+      }
+    }
+    return rows;
+  }, [detailOpen]);
+
+  // ─── 对账明细：树形数据(方案B) ───
+  const treeDetailData = useMemo(() => {
+    if (!detailOpen) return [];
+    const items = detailOpen.items || [];
+    const orderMap = new Map<string, Map<string, any[]>>();
+    for (const item of items) {
+      const po = item.parentOrderNo;
+      const sku = item.sku;
+      if (!orderMap.has(po)) orderMap.set(po, new Map());
+      const skuMap = orderMap.get(po)!;
+      if (!skuMap.has(sku)) skuMap.set(sku, []);
+      skuMap.get(sku)!.push(item);
+    }
+    const treeRows: any[] = [];
+    for (const [po, skuMap] of orderMap) {
+      const orderKey = `tree-${po}`;
+      const children: any[] = [];
+      let orderQty = 0, orderAmt = 0;
+      for (const [sku, skuItems] of skuMap) {
+        const skuKey = `${orderKey}-${sku}`;
+        let skuQty = 0, skuAmt = 0, skuPrice = skuItems[0].unitPrice;
+        const skuName = skuItems[0].productName;
+        const batchChildren: any[] = [];
+        let batchIdx = 0;
+        for (const item of skuItems) {
+          for (const b of (item.batches || [])) {
+            batchIdx++;
+            batchChildren.push({
+              key: `${skuKey}-b${batchIdx}`,
+              _type: 'batch',
+              batchNo: b.batchNo,
+              quantity: b.quantity,
+              shippedAt: b.shippedAt,
+              trackingNo: b.platformTrackingNo,
+              supTrackingNo: b.supTrackingNo,
+              signedAt: b.signedAt,
+              signedDocNo: b.signedDocNo,
+            });
+          }
+        }
+        for (const item of skuItems) { skuQty += item.quantity; skuAmt += item.amount; }
+        orderQty += skuQty; orderAmt += skuAmt;
+        children.push({
+          key: skuKey,
+          _type: 'sku',
+          parentOrderNo: po,
+          sku, productName: skuName, unitPrice: skuPrice,
+          quantity: skuQty, amount: skuAmt,
+          children: batchChildren.length > 0 ? batchChildren : undefined,
+        });
+      }
+      treeRows.push({
+        key: orderKey,
+        _type: 'order',
+        parentOrderNo: po,
+        quantity: orderQty, amount: orderAmt,
+        children,
+      });
+    }
+    return treeRows;
+  }, [detailOpen]);
+
+  // 发货批次迷你表格(方案A展开内容)
+  const BatchTable = ({ batches, setPreviewFile }: { batches: any[]; setPreviewFile: (f: { signedDocNo: string; batchNo: string; shippedAt: string; signedAt: string; supTrackingNo: string; platformTrackingNo: string }) => void }) => (
+    <Table
+      dataSource={batches}
+      rowKey={(r, i) => `b-${i}`}
+      size="small"
+      pagination={false}
+      columns={[
+        { title: '批次', dataIndex: 'batchNo', width: 130, render: (t: string) => <Text code style={{ fontSize: 11 }}>{t}</Text> },
+        { title: '数量', dataIndex: 'quantity', width: 80, render: (v: number) => v.toLocaleString() },
+        { title: '发货时间', dataIndex: 'shippedAt', width: 100 },
+        { title: '快递单号', dataIndex: 'platformTrackingNo', width: 260, render: (t: string, r: any) => t ? (<Space size={4}><Text code style={{ fontSize: 11 }}>{t}</Text><Button size="small" type="link" style={{ fontSize: 10, padding: 0 }} onClick={() => setWaybillPreview({ trackingNo: t, batchNo: r.batchNo, shippedAt: r.shippedAt })}>查看</Button><Button size="small" type="link" style={{ fontSize: 10, padding: 0 }} onClick={() => message.success(`已下载面单 ${t}（模拟）`)}>下载</Button></Space>) : <Text type="secondary" style={{ fontSize: 11 }}>—</Text> },
+        { title: '签收时间', dataIndex: 'signedAt', width: 100 },
+        {
+          title: '签收单', width: 100,
+          render: (_: any, r: any) => r.signedDocNo ? (
+            <Space size={4}>
+              <Button size="small" type="link" style={{ fontSize: 11 }} onClick={() => setPreviewFile({ signedDocNo: r.signedDocNo, batchNo: r.batchNo, shippedAt: r.shippedAt, signedAt: r.signedAt, supTrackingNo: r.supTrackingNo || '', platformTrackingNo: r.platformTrackingNo || '' })}>查看</Button>
+              <Button size="small" type="link" style={{ fontSize: 11 }} onClick={() => message.success(`已下载 ${r.signedDocNo}.pdf（模拟）`)}>下载</Button>
+            </Space>
+          ) : <Text type="secondary" style={{ fontSize: 11 }}>—</Text>,
+        },
+      ]}
+    />
+  );
+
+  // 公用列：SKU / 品名 / 数量 / 单价 / 金额
+  const skuCols = [
     { title: 'SKU', dataIndex: 'sku', width: 150, render: (t: string) => <Text code style={{ fontSize: 11 }}>{t}</Text> },
     { title: '品名', dataIndex: 'productName', width: 140, ellipsis: true },
-    { title: '数量', dataIndex: 'quantity', width: 80, render: (v: number) => v.toLocaleString(), sorter: (a: any, b: any) => a.quantity - b.quantity },
+    { title: '数量', dataIndex: 'quantity', width: 80, render: (v: number) => v.toLocaleString() },
     { title: '单价', dataIndex: 'unitPrice', width: 70, render: (v: number) => `¥${v.toFixed(2)}` },
+    { title: '金额', dataIndex: 'amount', width: 100, render: (v: number) => <Text strong>¥{v.toLocaleString()}.00</Text> },
+  ];
+
+  // 方案A 列
+  const groupedColumns = [
     {
-      title: '金额', dataIndex: 'amount', width: 100,
-      render: (v: number) => <Text strong>¥{v.toLocaleString()}.00</Text>,
-      sorter: (a: any, b: any) => a.amount - b.amount,
-      defaultSortOrder: 'descend' as const,
+      title: '采购订单号', dataIndex: 'parentOrderNo', width: 160,
+      render: (t: string) => <Text code style={{ fontSize: 11 }}>{t}</Text>,
     },
+    ...skuCols,
     {
-      title: '发货批次', dataIndex: 'batches', width: 120,
-      render: (batches: any[]) => {
-        if (!batches || batches.length === 0) return <Text type="secondary">—</Text>;
-        const shippedTotal = batches.reduce((s: number, b: any) => s + b.quantity, 0);
-        const FileCard = ({ icon, name, type, label }: { icon: React.ReactNode; name: string; type: 'image' | 'pdf'; label: string }) => (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2, padding: '4px 8px', background: '#fafafa', borderRadius: 6, border: '1px solid #f0f0f0' }}>
-            <span style={{ fontSize: 16 }}>{icon}</span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <Text type="secondary" style={{ fontSize: 11, display: 'block' }}>{label}</Text>
-              <Text ellipsis style={{ fontSize: 12 }}>{name}</Text>
-            </div>
-            <Button size="small" type="link" style={{ fontSize: 11, padding: '0 4px' }}
-              onClick={() => setPreviewFile({ name, type })}>预览</Button>
-            <Button size="small" type="link" style={{ fontSize: 11, padding: '0 4px' }}
-              onClick={() => message.success(`已下载 ${name}（模拟）`)}>下载</Button>
-          </div>
-        );
-        return (
-          <Popover
-            title="发货批次明细"
-            content={
-              <div style={{ maxWidth: 400 }}>
-                {batches.map((b: any, i: number) => (
-                  <div key={i} style={{ marginBottom: i < batches.length - 1 ? 10 : 0, paddingBottom: i < batches.length - 1 ? 10 : 0, borderBottom: i < batches.length - 1 ? '1px solid #f0f0f0' : 'none' }}>
-                    <div style={{ marginBottom: 6 }}><Text strong>批次 {b.batchNo}</Text><Text type="secondary" style={{ fontSize: 12, marginLeft: 8 }}>{b.quantity.toLocaleString()} 张</Text></div>
-                    <div style={{ fontSize: 12, lineHeight: '22px' }}>
-                      <div><Text type="secondary">发货时间：</Text>{b.shippedAt}</div>
-                      <FileCard icon={<FileImageOutlined style={{ color: '#1677ff' }} />} name={`${b.platformTrackingNo}.jpg`} type="image" label="快递面单" />
-                      <div style={{ marginTop: 8 }}><Text type="secondary">签收时间：</Text>{b.signedAt}</div>
-                      {b.signedDocNo ? (
-                        <FileCard icon={<FilePdfOutlined style={{ color: '#ff4d4f' }} />} name={`${b.signedDocNo}.pdf`} type="pdf" label="签收单" />
-                      ) : (
-                        <FileCard icon={<PaperClipOutlined style={{ color: '#fa8c16' }} />} name="签收回单照片.jpg" type="image" label="签收凭证" />
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            }
-            trigger="click"
-          >
-            <a style={{ fontSize: 12 }}>{batches.length} 批 · 共 {shippedTotal.toLocaleString()} 张</a>
-          </Popover>
-        );
+      title: '发货批次', width: 80,
+      render: (_: any, r: any) => {
+        if (!r.batches || r.batches.length === 0) return <Text type="secondary">—</Text>;
+        const total = r.batches.reduce((s: number, b: any) => s + b.quantity, 0);
+        return <a style={{ fontSize: 12 }}>{r.batches.length} 批 · {total.toLocaleString()} 张</a>;
       },
     },
   ];
+
+  // 方案B 列
+  const treeColumns = [
+    {
+      title: '采购订单号', dataIndex: 'parentOrderNo', width: 160,
+      render: (t: string, r: any) => {
+        if (r._type === 'order') return <Text code style={{ fontSize: 12, fontWeight: 600 }}>{t}</Text>;
+        if (r._type === 'sku') return null;
+        if (r._type === 'batch') return null;
+        return <Text code style={{ fontSize: 11 }}>{t}</Text>;
+      },
+    },
+    { title: 'SKU / 批次', dataIndex: 'sku', width: 150, render: (t: string, r: any) => {
+      if (r._type === 'batch') return <Text type="secondary" style={{ fontSize: 11 }}>{r.batchNo}</Text>;
+      return t ? <Text code style={{ fontSize: 11 }}>{t}</Text> : null;
+    }},
+    { title: '品名', dataIndex: 'productName', width: 140, ellipsis: true, render: (t: string, r: any) => r._type === 'batch' ? null : t },
+    { title: '数量', dataIndex: 'quantity', width: 80, render: (v: number) => v.toLocaleString() },
+    { title: '单价', dataIndex: 'unitPrice', width: 70, render: (v: any, r: any) => r._type === 'batch' ? null : (v ? `¥${Number(v).toFixed(2)}` : '—') },
+    { title: '金额', dataIndex: 'amount', width: 100, render: (v: any, r: any) => r._type === 'order' ? <Text strong>¥{Number(v).toLocaleString()}.00</Text> : (v ? <Text strong>¥{Number(v).toLocaleString()}.00</Text> : null) },
+    { title: '物流', width: 240, render: (_: any, r: any) => {
+      if (r._type === 'batch') return (<div style={{ fontSize: 11, lineHeight: '17px' }}><div><Text type="secondary">发：{r.shippedAt}</Text></div><div><Space size={2}><Text code style={{ fontSize: 10 }}>{r.trackingNo || '—'}</Text><Button size="small" type="link" style={{ fontSize: 9, padding: 0 }} onClick={() => setWaybillPreview({ trackingNo: r.trackingNo, batchNo: r.batchNo, shippedAt: r.shippedAt })}>查看面单</Button><Button size="small" type="link" style={{ fontSize: 9, padding: 0 }} onClick={() => message.success(`已下载面单 ${r.trackingNo}（模拟）`)}>下载</Button></Space></div></div>);
+      if (r._type === 'sku' && r.children && r.children.length > 0) { const totalShipped = r.children.reduce((s: number, c: any) => s + c.quantity, 0); return <Text type="secondary" style={{ fontSize: 11 }}>{r.children.length} 批 · {totalShipped.toLocaleString()} 张</Text>; }
+      return null;
+    }},
+    { title: '签收', width: 140, render: (_: any, r: any) => {
+      if (r._type === 'batch') return (<div style={{ fontSize: 11, lineHeight: '17px' }}><div><Text type="secondary">签：{r.signedAt || '—'}</Text></div>{r.signedDocNo ? (<Space size={2}><Button size="small" type="link" style={{ fontSize: 9, padding: 0 }} onClick={() => setPreviewFile({ signedDocNo: r.signedDocNo, batchNo: r.batchNo, shippedAt: r.shippedAt, signedAt: r.signedAt, supTrackingNo: r.supTrackingNo || '', platformTrackingNo: r.trackingNo || '' })}>查看签收单</Button><Button size="small" type="link" style={{ fontSize: 9, padding: 0 }} onClick={() => message.success(`已下载 ${r.signedDocNo}.pdf（模拟）`)}>下载</Button></Space>) : <Text type="secondary" style={{ fontSize: 10 }}>—</Text>}</div>);
+      return null;
+    }},
+  ];
+
+  // 方案A 汇总行
+  const GroupedSummary = () => (
+    <Table.Summary.Row>
+      <Table.Summary.Cell index={0} colSpan={5}><Text strong>合计</Text></Table.Summary.Cell>
+      <Table.Summary.Cell index={5}>—</Table.Summary.Cell>
+      <Table.Summary.Cell index={6}><Text strong style={{ color: token.colorPrimary }}>¥{detailOpen?.totalAmount.toLocaleString()}.00</Text></Table.Summary.Cell>
+      <Table.Summary.Cell index={7} />
+    </Table.Summary.Row>
+  );
+
 
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <Title level={4} style={{ margin: 0 }}>对账管理</Title>
-        <Select
-          size="small"
-          style={{ width: 200 }}
-          value={simulatedUser}
-          onChange={setSimulatedUser}
-          options={[
-            { value: 'admin', label: '🔑 模拟身份：主账号' },
-            ...purchaserAccounts.map(p => ({
-              value: p.name,
-              label: `${p.allowBilling ? '✅' : '🚫'} ${p.name}`,
-            })),
-          ]}
-        />
-        <Button icon={<DownloadOutlined />} onClick={handleExport}>导出 Excel</Button>
+        <Space size="middle">
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            <Text type="secondary" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>对账账号</Text>
+            <Select
+              size="small"
+              style={{ width: 180 }}
+              value={simulatedUser}
+              onChange={setSimulatedUser}
+              options={[
+                { value: 'admin', label: '主账号（查看全部）' },
+                ...purchaserAccounts.map(p => ({
+                  value: p.name,
+                  label: `${p.name}${p.allowBilling ? '' : '（无对账权限）'}`,
+                })),
+              ]}
+            />
+          </span>
+          <Button icon={<DownloadOutlined />} onClick={handleExport}>导出 Excel</Button>
+        </Space>
       </div>
 
       {!hasBillingAccess ? (
@@ -193,8 +329,20 @@ export default function BrandBillings() {
               ...Object.entries(statusMap).map(([k, v]) => ({ value: k, label: v.text })),
             ]}
           />
+          <Select
+            placeholder="结算周期"
+            style={{ width: 120 }}
+            value={settlementModeFilter}
+            onChange={setSettlementModeFilter}
+            options={[
+              { value: 'all', label: '全部周期' },
+              { value: 'monthly', label: '月结' },
+              { value: 'quarterly', label: '季结' },
+              { value: 'custom', label: '自定义' },
+            ]}
+          />
           <RangePicker placeholder={['账期 从', '到']} value={dateRange} onChange={v => setDateRange(v as any)} />
-          <Button onClick={() => { setStatusFilter('all'); setDateRange(null); }}>
+          <Button onClick={() => { setStatusFilter('all'); setDateRange(null); setSettlementModeFilter('all'); }}>
             重置筛选
           </Button>
         </Space>
@@ -258,7 +406,15 @@ export default function BrandBillings() {
               ),
             },
             { title: '品牌方', dataIndex: 'brandName', width: 100, render: (t: string) => <Tag color="blue">{t}</Tag> },
-            { title: '账期', dataIndex: 'period', width: 220 },
+            { title: '账期', dataIndex: 'period', width: 200 },
+            {
+              title: '结算周期', dataIndex: 'settlementMode', width: 90,
+              render: (m: string | undefined) => {
+                const map: Record<string, { color: string; text: string }> = { monthly: { color: 'blue', text: '月结' }, quarterly: { color: 'purple', text: '季结' }, custom: { color: 'orange', text: '自定义' } };
+                const info = map[m || 'monthly'] || { color: 'default', text: m || '月结' };
+                return <Tag color={info.color}>{info.text}</Tag>;
+              },
+            },
             {
               title: '总金额', dataIndex: 'totalAmount', width: 130,
               render: (v: number) => <Text strong style={{ fontVariantNumeric: 'tabular-nums' }}>¥{v.toLocaleString()}.00</Text>,
@@ -273,10 +429,12 @@ export default function BrandBillings() {
             },
             {
               title: '付款到期日', dataIndex: 'paymentDueDate', width: 110,
-              render: (d: string, r: BillingItem) => (
-                <Text type={r.overdue ? 'danger' : 'secondary'}>{d}</Text>
-              ),
+              render: (d: string, r: BillingItem) => {
+                if (d === '—') return <Text type="secondary">—</Text>;
+                return <Text type={r.overdue ? 'danger' : 'secondary'}>{d}</Text>;
+              },
             },
+              
             {
               title: '发票', dataIndex: 'invoiceUploaded', width: 70,
               render: (v: boolean) => v
@@ -365,6 +523,18 @@ export default function BrandBillings() {
                       <Text strong>{detailOpen.period}</Text>
                     </div>
                     <div>
+                      <Text type="secondary" style={{ fontSize: 12 }}>生成时间</Text>
+                      <br />
+                      <Text>{detailOpen.generatedAt || '—'}</Text>
+                    </div>
+                    <div>
+                      <Text type="secondary" style={{ fontSize: 12 }}>结算方式</Text>
+                      <br />
+                      <Tag color={{ monthly: 'blue', quarterly: 'purple', custom: 'orange' }[detailOpen.settlementMode || 'monthly'] || 'default'}>
+                        {{ monthly: '月结', quarterly: '季结', custom: '自定义' }[detailOpen.settlementMode || 'monthly'] || detailOpen.settlementMode}
+                      </Tag>
+                    </div>
+                    <div>
                       <Text type="secondary" style={{ fontSize: 12 }}>状态</Text>
                       <br />
                       <Tag color={statusMap[detailOpen.status]?.color}>{statusMap[detailOpen.status]?.text}</Tag>
@@ -407,71 +577,150 @@ export default function BrandBillings() {
             {detailOpen.overdue && (
               <Alert type="error" showIcon title="此对账单已超期未付，请尽快处理以免影响新订单创建。" style={{ marginBottom: 12 }} />
             )}
-            <Table
-              dataSource={detailOpen.items}
-              rowKey="sku"
-              size="small"
-              pagination={false}
-              defaultSortOrder="descend"
-              sortDirections={['descend', 'ascend']}
-              columns={detailColumns}
-              summary={() => (
-                <Table.Summary.Row>
-                  <Table.Summary.Cell index={0} colSpan={4}>
-                    <Text strong>合计</Text>
-                  </Table.Summary.Cell>
-                  <Table.Summary.Cell index={4}>
-                    <Text strong>{detailOpen.items.reduce((s, i) => s + i.quantity, 0).toLocaleString()}</Text>
-                  </Table.Summary.Cell>
-                  <Table.Summary.Cell index={5}>—</Table.Summary.Cell>
-                  <Table.Summary.Cell index={6}>
-                    <Text strong style={{ color: token.colorPrimary }}>
-                      ¥{detailOpen.totalAmount.toLocaleString()}.00
-                    </Text>
-                  </Table.Summary.Cell>
-                  <Table.Summary.Cell index={7} />
-                </Table.Summary.Row>
-              )}
-            />
+            <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Segmented
+                size="small"
+                value={detailViewMode}
+                onChange={(v) => setDetailViewMode(v as 'grouped' | 'tree')}
+                options={[
+                  { value: 'grouped', label: '按订单分组' },
+                  { value: 'tree', label: '树形展开' },
+                ]}
+              />
+              <Text type="secondary" style={{ fontSize: 12 }}>共 {detailOpen.items.reduce((s, i) => s + i.quantity, 0).toLocaleString()} 张</Text>
+            </div>
+            {detailViewMode === 'grouped' ? (
+              <Table
+                dataSource={groupedDetailData}
+                rowKey="key"
+                size="small"
+                pagination={false}
+                columns={groupedColumns}
+                expandable={{
+                  expandedRowRender: (r: any) => <BatchTable batches={r.batches} setPreviewFile={setPreviewFile} />,
+                  rowExpandable: (r: any) => r.batches && r.batches.length > 0,
+                }}
+                summary={() => <GroupedSummary />}
+              />
+            ) : (
+              <Table
+                dataSource={treeDetailData}
+                rowKey="key"
+                size="small"
+                pagination={false}
+                columns={treeColumns}
+                defaultExpandAllRows
+                summary={() => (
+                  <Table.Summary.Row>
+                    <Table.Summary.Cell index={0} colSpan={5}><Text strong>合计</Text></Table.Summary.Cell>
+                    <Table.Summary.Cell index={5}><Text strong style={{ color: token.colorPrimary }}>¥{detailOpen?.totalAmount.toLocaleString()}.00</Text></Table.Summary.Cell>
+                    <Table.Summary.Cell index={6} />
+                    <Table.Summary.Cell index={7} />
+                  </Table.Summary.Row>
+                )}
+              />
+            )}
           </>
         )}
       </Modal>
 
-      {/* 文件预览弹窗 */}
+      {/* 签收单预览弹窗 */}
       <Modal
-        title={previewFile?.name || '文件预览'}
+        title={`签收单预览 — ${previewFile?.signedDocNo || ''}`}
         open={!!previewFile}
         onCancel={() => setPreviewFile(null)}
-        width={700}
+        width={720}
         footer={[
-          <Button key="download" icon={<DownloadOutlined />} onClick={() => { message.success(`已下载 ${previewFile?.name}（模拟）`); }}>
-            下载文件
+          <Button key="download" icon={<DownloadOutlined />} onClick={() => { message.success(`已下载签收单 ${previewFile?.signedDocNo}（模拟）`); }}>
+            下载签收单
           </Button>,
           <Button key="close" type="primary" onClick={() => setPreviewFile(null)}>关闭</Button>,
         ]}
       >
         {previewFile && (
-          <div style={{ textAlign: 'center', padding: '40px 20px', background: '#f5f5f5', borderRadius: 8, minHeight: 300, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            {previewFile.type === 'image' ? (
-              <>
-                <FileImageOutlined style={{ fontSize: 64, color: '#1677ff', marginBottom: 16 }} />
-                <Text type="secondary">图片文件预览区域</Text>
-                <div style={{ marginTop: 16, width: '100%', maxWidth: 480, height: 320, background: '#e8e8e8', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed #d9d9d9' }}>
-                  <Text type="secondary" style={{ fontSize: 13 }}>📷 文件：{previewFile.name}</Text>
-                </div>
-              </>
-            ) : (
-              <>
-                <FilePdfOutlined style={{ fontSize: 64, color: '#ff4d4f', marginBottom: 16 }} />
-                <Text type="secondary">PDF 文档预览区域</Text>
-                <div style={{ marginTop: 16, width: '100%', maxWidth: 480, height: 360, background: '#fff', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e8e8e8', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-                  <Text type="secondary" style={{ fontSize: 13 }}>📄 文件：{previewFile.name}</Text>
-                </div>
-              </>
-            )}
+          <div>
+            <Card size="small" style={{ marginBottom: 16, background: token.colorFillQuaternary }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px 32px', fontSize: 13 }}>
+                <div><Text type="secondary">签收单号</Text><br /><Text code>{previewFile.signedDocNo}</Text></div>
+                <div><Text type="secondary">批次号</Text><br /><Text code>{previewFile.batchNo}</Text></div>
+                <div><Text type="secondary">签收时间</Text><br /><Text>{previewFile.signedAt || '—'}</Text></div>
+                <div><Text type="secondary">发货时间</Text><br /><Text>{previewFile.shippedAt || '—'}</Text></div>
+                <div><Text type="secondary">快递单号</Text><br /><Text code style={{ fontSize: 12 }}>{previewFile.platformTrackingNo || '—'}</Text></div>
+              </div>
+            </Card>
+            {/* 回执单样式预览 */}
+            <div style={{ border: '1px solid #e8e8e8', borderRadius: 8, padding: '32px 40px', background: '#fff', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+              <div style={{ textAlign: 'center', borderBottom: '2px solid #1677ff', paddingBottom: 16, marginBottom: 24 }}>
+                <Text strong style={{ fontSize: 18, color: '#1677ff' }}>货品签收回执单</Text>
+                <br />
+                <Text type="secondary" style={{ fontSize: 12 }}>编号：{previewFile.signedDocNo}</Text>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 40px', fontSize: 13, lineHeight: '24px' }}>
+                <div><Text type="secondary">发货批次：</Text><Text strong>{previewFile.batchNo}</Text></div>
+                <div><Text type="secondary">发货时间：</Text><Text>{previewFile.shippedAt}</Text></div>
+                <div><Text type="secondary">签收时间：</Text><Text strong style={{ color: '#52c41a' }}>{previewFile.signedAt || '—'}</Text></div>
+                <div style={{ gridColumn: '1 / -1' }}><Text type="secondary">快递单号：</Text><Text code style={{ fontSize: 11 }}>{previewFile.platformTrackingNo || '—'}</Text></div>
+              </div>
+              <div style={{ borderTop: '1px dashed #d9d9d9', margin: '20px 0' }} />
+              <div style={{ display: 'flex', gap: 48, fontSize: 13 }}>
+                <div style={{ textAlign: 'center' }}><Text type="secondary">发货方签章</Text><div style={{ marginTop: 8, width: 120, height: 44, border: '1px solid #d9d9d9', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fafafa' }}><Text type="secondary" style={{ fontSize: 11 }}>供应商签章区</Text></div></div>
+                <div style={{ textAlign: 'center' }}><Text type="secondary">收货方签章</Text><div style={{ marginTop: 8, width: 120, height: 44, border: '1px solid #d9d9d9', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fafafa' }}><Text type="secondary" style={{ fontSize: 11 }}>品牌方签章区</Text></div></div>
+                <div style={{ textAlign: 'center' }}><Text type="secondary">平台方签章</Text><div style={{ marginTop: 8, width: 120, height: 44, border: '1px solid #d9d9d9', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fafafa' }}><Text type="secondary" style={{ fontSize: 11 }}>平台签章区</Text></div></div>
+              </div>
+              <div style={{ marginTop: 16, textAlign: 'center' }}>
+                <Text type="secondary" style={{ fontSize: 12 }}>本回执单为电子凭证，与纸质签收单具有同等效力</Text>
+              </div>
+            </div>
           </div>
         )}
       </Modal>
+      {/* 快递面单预览弹窗 */}
+      <Modal
+        title={`快递面单 — ${waybillPreview?.trackingNo || ''}`}
+        open={!!waybillPreview}
+        onCancel={() => setWaybillPreview(null)}
+        width={600}
+        footer={[
+          <Button key="download" icon={<DownloadOutlined />} onClick={() => { message.success(`已下载面单 ${waybillPreview?.trackingNo}（模拟）`); }}>
+            下载面单
+          </Button>,
+          <Button key="close" type="primary" onClick={() => setWaybillPreview(null)}>关闭</Button>,
+        ]}
+      >
+        {waybillPreview && (
+          <div>
+            <Card size="small" style={{ marginBottom: 16, background: token.colorFillQuaternary }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 32px', fontSize: 13 }}>
+                <div><Text type="secondary">快递单号</Text><br /><Text code style={{ fontSize: 14 }}>{waybillPreview.trackingNo}</Text></div>
+                <div><Text type="secondary">批次号</Text><br /><Text code>{waybillPreview.batchNo}</Text></div>
+                <div style={{ gridColumn: '1 / -1' }}><Text type="secondary">发货时间</Text><br /><Text>{waybillPreview.shippedAt}</Text></div>
+              </div>
+            </Card>
+            <div style={{ border: '1px solid #e8e8e8', borderRadius: 8, padding: '24px 32px', background: '#fff', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+              <div style={{ textAlign: 'center', borderBottom: '2px solid #fa8c16', paddingBottom: 12, marginBottom: 20 }}>
+                <Text strong style={{ fontSize: 16, color: '#fa8c16' }}>快递面单</Text>
+                <br />
+                <Text type="secondary" style={{ fontSize: 12 }}>单号：{waybillPreview.trackingNo}</Text>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '10px 24px', fontSize: 13, marginBottom: 20 }}>
+                <Text type="secondary">寄件方：</Text><Text>供应商（通过平台转发）</Text>
+                <Text type="secondary">收件方：</Text><Text>品牌方收货地址</Text>
+                <Text type="secondary">发货批次：</Text><Text strong>{waybillPreview.batchNo}</Text>
+                <Text type="secondary">发货时间：</Text><Text>{waybillPreview.shippedAt}</Text>
+              </div>
+              <div style={{ border: '1px dashed #d9d9d9', borderRadius: 4, padding: 16, background: '#fafafa', textAlign: 'center' }}>
+                <Text strong style={{ fontSize: 18, fontFamily: 'monospace', letterSpacing: 2 }}>{waybillPreview.trackingNo}</Text>
+                <br />
+                <Text type="secondary" style={{ fontSize: 11, marginTop: 8, display: 'inline-block' }}>扫码或登录快递官网输入单号即可追踪物流</Text>
+              </div>
+              <div style={{ marginTop: 16, textAlign: 'center' }}>
+                <Text type="secondary" style={{ fontSize: 11 }}>此面单为电子凭证，请妥善保管</Text>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
+
 
       </>
       )}

@@ -149,6 +149,15 @@ export default function Login() {
               ))}
             </Space>
           </div>
+
+          {/* 版本标识 */}
+          <div style={{ marginTop: 20, textAlign: 'center' }}>
+            <Text type="secondary" style={{ fontSize: 11 }}>
+              <Text code style={{ fontSize: 10 }}>{'tag-hub-mk'}</Text>
+              <span style={{ margin: '0 6px', color: '#d9d9d9' }}>|</span>
+              {'2026-06-12'}
+            </Text>
+          </div>
         </div>
       </div>
 

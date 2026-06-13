@@ -1,9 +1,10 @@
-import { useState, useMemo } from 'react';
-import {Card, Table, Tag, Input, Typography, Tabs, Switch, Space, Badge, Button, Modal, Form, Select, theme, Alert} from "antd";
-import { CheckCircleOutlined, ClockCircleOutlined, StopOutlined, TeamOutlined, BankOutlined, UserOutlined, PlusOutlined , BookOutlined } from "@ant-design/icons";
+import React, { useState, useMemo } from 'react';
+import { Card, Table, Tag, Input, Typography, Tabs, Switch, Space, Badge, Button, Modal, Form, Select, theme, Alert, message } from "antd";
+import { CheckCircleOutlined, ClockCircleOutlined, StopOutlined, TeamOutlined, BankOutlined, UserOutlined, PlusOutlined } from "@ant-design/icons";
 import { factories, purchaserAccounts } from '../data/mock';
 import type { Factory, PurchaserAccount } from '../data/mock';
 import { useBrandContext } from '../data/BrandContext';
+import { useBrandConfig } from '../data/BrandConfigContext';
 
 const { Title, Text } = Typography;
 
@@ -13,62 +14,27 @@ const factoryStatusMap: Record<string, { color: string; text: string; icon?: Rea
   '停用': { color: 'default', text: '已停用', icon: <StopOutlined /> },
 };
 
-      <Modal
-        title={<Space><BookOutlined /> 组织管理使用说明书</Space>}
-        open={guideModalOpen}
-        onCancel={() => setGuideModalOpen(false)}
-        width={800}
-        footer={<Button type="primary" onClick={() => setGuideModalOpen(false)}>关闭</Button>}
-      >
-        <div style={{ fontSize: 13, lineHeight: 1.9, maxHeight: '60vh', overflow: 'auto', paddingRight: 8 }}>
-          <Alert type="info" showIcon style={{ marginBottom: 20, borderRadius: 6 }}
-            title="本文档面向品牌方管理员，介绍采购账号的创建与权限管理，以及工厂列表的查看。" />
-          <Text strong style={{ fontSize: 15 }}>一、采购账号管理</Text>
-          <div style={{ margin: '12px 0 16px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
-            <Text strong>新增采购账号</Text>
-            <p style={{ margin: '4px 0 0' }}>
-              点击<Button size="small" type="primary" icon={<PlusOutlined />}>新增采购账号</Button>，
-              填写采购员姓名、手机号、角色和对账权限。系统自动生成密码并短信通知。
-            </p>
-          </div>
-          <div style={{ margin: '0 0 16px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
-            <Text strong>角色与权限</Text>
-            <p style={{ margin: '4px 0 0' }}>
-              <Tag color="blue">主账号</Tag>可查看全部订单和对账单。
-              <Tag color="cyan">子采购</Tag>仅可查看本人创建的订单。
-            </p>
-          </div>
-          <div style={{ margin: '0 0 20px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
-            <Text strong>对账权限</Text>
-            <p style={{ margin: '4px 0 0' }}>开关控制采购账号是否可访问对账页面。关闭后该采购员无法查看对账单。</p>
-          </div>
-          <Text strong style={{ fontSize: 15 }}>二、工厂管理</Text>
-          <div style={{ margin: '12px 0 16px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
-            <Text strong>工厂列表</Text>
-            <p style={{ margin: '4px 0 0' }}>
-              展示平台方已授权的成衣工厂信息。品牌方仅可查看，工厂的新增和修改由平台运营统一管理。
-            </p>
-          </div>
-          <div style={{ margin: '0 0 20px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
-            <Text strong>工厂状态</Text>
-            <p style={{ margin: '4px 0 0' }}>
-              <Tag color="green">已激活</Tag>正常运营，可承接订单。
-              <Tag color="orange">未激活</Tag>尚未激活。
-              <Tag>已停用</Tag>已停止运营，不再承接新订单。
-            </p>
-          </div>
-        </div>
-      </Modal>
 
 export default function BrandFactories() {
   const { token } = theme.useToken();
   const { currentBrandId, currentBrandName } = useBrandContext();
+  const { getConfig } = useBrandConfig();
+  const brandCfg = getConfig(currentBrandId === 0 ? 1 : currentBrandId);
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<string>('purchasers');
+
+  // 当配置变更导致当前 tab 不可见时自动切换
+  React.useEffect(() => {
+    if (activeTab === 'purchasers' && !brandCfg.showPurchaserTab && brandCfg.showFactoryTab) {
+      setActiveTab('factories');
+    } else if (activeTab === 'factories' && !brandCfg.showFactoryTab && brandCfg.showPurchaserTab) {
+      setActiveTab('purchasers');
+    }
+  }, [brandCfg.showPurchaserTab, brandCfg.showFactoryTab]);
   // 新增采购账号弹窗
   const [addOpen, setAddOpen] = useState(false);
-  const [guideModalOpen, setGuideModalOpen] = useState(false);
   const [addForm] = Form.useForm();
+  const [purchasers, setPurchasers] = useState<PurchaserAccount[]>(purchaserAccounts);
 
   // 工厂过滤
   const filteredFactories = useMemo(() => {
@@ -85,7 +51,7 @@ export default function BrandFactories() {
 
   // 采购账号过滤
   const filteredPurchasers = useMemo(() => {
-    let list = [...purchaserAccounts];
+    let list = [...purchasers];
     if (currentBrandId !== 0) {
       list = list.filter(p => p.brandId === currentBrandId);
     }
@@ -94,12 +60,21 @@ export default function BrandFactories() {
       list = list.filter(p => p.name.includes(q) || p.phone.includes(q));
     }
     return list;
-  }, [currentBrandId, search]);
+  }, [currentBrandId, search, purchasers]);
 
   const handleAddPurchaser = () => {
     addForm.validateFields().then(values => {
-      // TODO: 实际接入后端 API 后，此处应调用接口创建采购账号
-      console.log('新增采购账号:', values);
+      const newPurchaser: PurchaserAccount = {
+        id: Math.max(0, ...purchasers.map(p => p.id)) + 1,
+        name: values.name,
+        phone: values.phone,
+        role: values.role || 'purchaser',
+        remark: values.remark || '',
+        allowBilling: values.allowBilling || false,
+        brandId: currentBrandId === 0 ? 1 : currentBrandId,
+      };
+      setPurchasers(prev => [...prev, newPurchaser]);
+      message.success(`已创建采购账号：${values.name}`);
       addForm.resetFields();
       setAddOpen(false);
     });
@@ -107,29 +82,44 @@ export default function BrandFactories() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}><Title level={4} style={{ marginTop: 0, marginBottom: 0 }}>组织管理</Title><Button icon={<BookOutlined />} onClick={() => setGuideModalOpen(true)}>使用说明书</Button></div>
+      <div style={{ marginBottom: 16 }}><Title level={4} style={{ marginTop: 0, marginBottom: 0 }}>组织管理</Title></div>
 
       <Card style={{ borderRadius: 8 }}>
         <Tabs
           activeKey={activeTab}
           onChange={setActiveTab}
           items={[
-            {
-              key: 'purchasers',
+            ...(brandCfg.showPurchaserTab ? [{
+              key: 'purchasers' as const,
               label: <span><TeamOutlined /> 采购账号 <Badge count={filteredPurchasers.length} size="small" style={{ marginLeft: 8 }} /></span>,
-            },
-            {
-              key: 'factories',
+            }] : []),
+            ...(brandCfg.showFactoryTab ? [{
+              key: 'factories' as const,
               label: <span><BankOutlined /> 工厂管理 <Badge count={filteredFactories.length} size="small" style={{ marginLeft: 8 }} /></span>,
-            },
+            }] : []),
           ]}
         />
 
+        {(!brandCfg.showPurchaserTab && !brandCfg.showFactoryTab) ? (
+          <div style={{ textAlign: 'center', padding: 40 }}>
+            <Text type="secondary" style={{ fontSize: 14 }}>组织管理模块已被平台管理员关闭</Text>
+            <br /><Text type="secondary" style={{ fontSize: 12 }}>如需使用，请联系平台运营</Text>
+          </div>
+        ) : (<>
         <Input.Search placeholder={activeTab === 'factories' ? '搜索工厂名称、联系人或手机号' : '搜索采购姓名或手机号'}
           style={{ width: 300, marginBottom: 16 }} value={search} onChange={e => setSearch(e.target.value)} allowClear />
 
         {activeTab === 'factories' ? (
           <>
+            {brandCfg.allowCreateFactory && (
+              <div style={{ marginBottom: 16 }}>
+                <Button type="primary" size="small" icon={<PlusOutlined />}
+                  onClick={() => message.info('新增工厂功能（演示）')}>
+                  新增工厂
+                </Button>
+                <Text type="secondary" style={{ marginLeft: 8, fontSize: 12 }}>品牌方自主新增工厂，提交后由平台审核</Text>
+              </div>
+            )}
             <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
               <div style={{ flex: 1, minWidth: 120, background: token.colorFillQuaternary, borderRadius: 8, padding: '10px 14px' }}>
                 <Text type="secondary" style={{ fontSize: 12 }}>工厂总数</Text>
@@ -168,7 +158,9 @@ export default function BrandFactories() {
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <Text type="secondary" style={{ fontSize: 12 }}>品牌方自主管理采购账号，用于授权内部采购员下单、对账等操作</Text>
+              {brandCfg.allowCreatePurchaser && (
               <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => setAddOpen(true)}>新增采购账号</Button>
+              )}
             </div>
 
             <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
@@ -226,6 +218,8 @@ export default function BrandFactories() {
             />
           </>
         )}
+      </>
+      )}
       </Card>
 
       {/* 新增采购账号弹窗 */}

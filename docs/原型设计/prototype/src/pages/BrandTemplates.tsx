@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import {Card, Table, Button, Tag, Select, Input, Space, Typography, Modal, Descriptions, Form, message, Popconfirm, InputNumber, Alert} from 'antd';
+import { Card, Table, Button, Tag, Select, Input, AutoComplete, Space, Typography, Modal, Descriptions, Form, message, Popconfirm, InputNumber, Alert, Switch, theme } from "antd";
 import { useNavigate } from 'react-router-dom';
 import {
   PlusOutlined, EditOutlined, CopyOutlined, EyeOutlined, ArrowLeftOutlined,
@@ -261,62 +261,13 @@ function CareLabelPreview({ fields, version }: { fields: TemplateField[]; versio
 
 // ========== 主组件 ==========
 
-      <Modal
-        title={<Space><BookOutlined /> 模板管理使用说明书</Space>}
-        open={guideModalOpen}
-        onCancel={() => setGuideModalOpen(false)}
-        width={800}
-        footer={<Button type="primary" onClick={() => setGuideModalOpen(false)}>关闭</Button>}
-      >
-        <div style={{ fontSize: 13, lineHeight: 1.9, maxHeight: '60vh', overflow: 'auto', paddingRight: 8 }}>
-          <Alert type="info" showIcon style={{ marginBottom: 20, borderRadius: 6 }}
-            title="本文档面向品牌方打单员，介绍标签模板的创建、设计、复制与删除等操作。" />
-          <Text strong style={{ fontSize: 15 }}>一、页面概览</Text>
-          <div style={{ margin: '12px 0 16px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
-            <Text strong>模板列表</Text>
-            <p style={{ margin: '4px 0 0' }}>展示本品牌下所有标签模板。每行显示名称、标签类型（吊牌/不干胶/洗麦）、版本号、状态和创建时间。</p>
-          </div>
-          <div style={{ margin: '0 0 16px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
-            <Text strong>筛选与搜索</Text>
-            <p style={{ margin: '4px 0 0' }}>支持按<Text code>标签类型</Text>和<Text code>状态</Text>筛选，搜索框支持模板名称模糊匹配。</p>
-          </div>
-          <div style={{ margin: '0 0 20px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
-            <Text strong>新建模板</Text>
-            <p style={{ margin: '4px 0 0' }}>点击<Button size="small" type="primary" icon={<PlusOutlined />}>新建模板</Button>，填写名称并选择标签类型即可创建。</p>
-          </div>
-          <Text strong style={{ fontSize: 15 }}>二、模板操作</Text>
-          <div style={{ margin: '12px 0 16px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
-            <Text strong>设计</Text>
-            <p style={{ margin: '4px 0 0' }}>点击<Button size="small" icon={<EditOutlined />}>设计</Button>进入设计器，可添加标签字段并拖拽调整布局。</p>
-          </div>
-          <div style={{ margin: '0 0 16px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
-            <Text strong>预览 / 编辑 / 复制</Text>
-            <p style={{ margin: '4px 0 0' }}>
-              <Button size="small" icon={<EyeOutlined />}>预览</Button>查看模板详情和字段列表。
-              <Button size="small" icon={<EditOutlined />}>编辑</Button>修改模板名称。
-              <Button size="small" icon={<CopyOutlined />}>复制</Button>创建副本并自动递增版本号。
-            </p>
-          </div>
-          <div style={{ margin: '0 0 20px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
-            <Text strong>删除</Text>
-            <p style={{ margin: '4px 0 0' }}>仅未被订单引用的模板可删除。删除后不可恢复，请谨慎操作。</p>
-          </div>
-          <Text strong style={{ fontSize: 15 }}>三、模板与下单的关系</Text>
-          <div style={{ margin: '12px 0 16px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
-            <Text strong>模板下单</Text>
-            <p style={{ margin: '4px 0 0' }}>创建订单时选择<Text code>模板下单</Text>，系统根据 SKU 自动匹配模板。模板需<Text code>启用</Text>状态。</p>
-          </div>
-          <div style={{ margin: '0 0 20px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
-            <Text strong>即时下单</Text>
-            <p style={{ margin: '4px 0 0' }}>选择<Text code>即时下单</Text>后订单状态为<Text code>待补模板</Text>，需尽快创建模板后订单才会推送审核。</p>
-          </div>
-        </div>
-      </Modal>
 
 export default function BrandTemplates() {
   const navigate = useNavigate();
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [searchText, setSearchText] = useState('');
+  const [skuSearchText, setSkuSearchText] = useState('');
+  const { token } = theme.useToken();
   const [templates, setTemplates] = useState<Template[]>(initialTemplates as Template[]);
 
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -332,15 +283,67 @@ export default function BrandTemplates() {
   const [deleteCheckResult, setDeleteCheckResult] = useState<{ used: boolean; orderNos: string[] }>({ used: false, orderNos: [] });
   const [guideModalOpen, setGuideModalOpen] = useState(false);
 
+  // 模板→SKU 映射：从订单中提取已绑定SKU的模板
+  const templateSkuMap = useMemo(() => {
+    const map = new Map<string, Set<string>>();
+    for (const o of orders) {
+      if (!o.templateName) continue;
+      const skus: string[] = [];
+      if (o.sku) skus.push(o.sku);
+      for (const so of o.subOrders) {
+        if (so.sku) skus.push(so.sku);
+      }
+      if (skus.length === 0) continue;
+      // 匹配模板名：订单 templateName 如 "标准吊牌模板 v3"，模板 name 如 "标准吊牌模板"
+      for (const t of templates) {
+        if (o.templateName.includes(t.name)) {
+          if (!map.has(t.name)) map.set(t.name, new Set());
+          for (const sku of skus) map.get(t.name)!.add(sku);
+        }
+      }
+    }
+    return map;
+  }, [templates]);
+
+  // SKU 自动补全选项（去重，含关联模板）
+  const skuOptions = useMemo(() => {
+    const skuMap = new Map<string, Set<string>>();
+    for (const [tname, skus] of templateSkuMap) {
+      for (const sku of skus) {
+        if (!skuMap.has(sku)) skuMap.set(sku, new Set());
+        skuMap.get(sku)!.add(tname);
+      }
+    }
+    return Array.from(skuMap.entries()).map(([sku, tnames]) => ({
+      value: sku,
+      searchText: `${sku} ${Array.from(tnames).join(' ')}`.toLowerCase(),
+      label: (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+          <Text code style={{ fontSize: 12 }}>{sku}</Text>
+          <Text type="secondary" style={{ fontSize: 11 }}>{Array.from(tnames).join('、')}</Text>
+        </div>
+      ),
+    }));
+  }, [templateSkuMap]);
+
   const filtered = useMemo(() => {
     return templates
       .filter(t => {
         const matchType = typeFilter === 'all' || t.type === typeFilter;
         const matchName = !searchText || t.name.toLowerCase().includes(searchText.toLowerCase());
-        return matchType && matchName;
+        const matchSku = !skuSearchText || (() => {
+          const templateSkus = templateSkuMap.get(t.name);
+          if (!templateSkus || templateSkus.size === 0) return false;
+          const kw = skuSearchText.toLowerCase();
+          for (const sku of templateSkus) {
+            if (sku.toLowerCase().includes(kw)) return true;
+          }
+          return false;
+        })();
+        return matchType && matchName && matchSku;
       })
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  }, [templates, typeFilter, searchText]);
+  }, [templates, typeFilter, searchText, skuSearchText, templateSkuMap]);
 
   const handlePreview = (record: Template) => {
     setPreviewTemplate(record);
@@ -508,9 +511,12 @@ export default function BrandTemplates() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><Title level={4} style={{ marginTop: 0, marginBottom: 0 }}>模板管理</Title><Button icon={<BookOutlined />} onClick={() => setGuideModalOpen(true)}>使用说明书</Button></div>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>新建模板</Button>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <Title level={4} style={{ marginTop: 0, marginBottom: 0 }}>模板管理</Title>
+        <Space>
+          <Button icon={<BookOutlined />} onClick={() => setGuideModalOpen(true)}>使用说明书</Button>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>新建模板</Button>
+        </Space>
       </div>
       <Card style={{ borderRadius: 8 }}>
         <Space style={{ marginBottom: 16 }}>
@@ -528,10 +534,23 @@ export default function BrandTemplates() {
           />
           <Input.Search
             placeholder="搜索模板名称"
-            style={{ width: 240 }}
+            style={{ width: 200 }}
             value={searchText}
             onChange={e => setSearchText(e.target.value)}
             onSearch={setSearchText}
+            allowClear
+          />
+          <AutoComplete
+            value={skuSearchText}
+            options={skuOptions}
+            onChange={setSkuSearchText}
+            style={{ width: 220 }}
+            placeholder="输入或搜索 SKU"
+            filterOption={(inputValue, option) => {
+              if (!inputValue) return true;
+              const q = inputValue.toLowerCase();
+              return (option as any).searchText.includes(q);
+            }}
             allowClear
           />
         </Space>
@@ -666,6 +685,78 @@ export default function BrandTemplates() {
             />
           </Form.Item>
         </Form>
+      </Modal>
+      {/* ─── 使用说明书 Modal ─── */}
+      <Modal
+        title={<Space><BookOutlined /> 模板管理使用说明书</Space>}
+        open={guideModalOpen}
+        onCancel={() => setGuideModalOpen(false)}
+        width={800}
+        footer={<Button type="primary" onClick={() => setGuideModalOpen(false)}>关闭</Button>}
+      >
+        <div style={{ fontSize: 13, lineHeight: 1.9, maxHeight: '60vh', overflow: 'auto', paddingRight: 8 }}>
+          <Alert
+            title="本文档面向品牌方打单员，介绍标签模板的创建、编辑、设计、复制与删除等管理操作。"
+            type="info" showIcon style={{ marginBottom: 20, borderRadius: 6 }}
+          />
+          <Text strong style={{ fontSize: 15 }}>一、页面概览</Text>
+          <div style={{ margin: '12px 0 16px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
+            <Text strong>模板列表</Text>
+            <p style={{ margin: '4px 0 0' }}>
+              上方展示品牌方已创建的标签模板，支持按<Text code>标签类型</Text>和<Text code>模板名称</Text>进行筛选。
+            </p>
+          </div>
+          <div style={{ margin: '0 0 16px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
+            <Text strong>新建模板</Text>
+            <p style={{ margin: '4px 0 0' }}>
+              点击右上角<Button type="primary" size="small" icon={<PlusOutlined />}>新建模板</Button>，设置模板名称和标签类型后进入设计器。
+            </p>
+          </div>
+          <Text strong style={{ fontSize: 15 }}>二、模板操作说明</Text>
+          <div style={{ margin: '12px 0 16px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
+            <Text strong>设计</Text>
+            <p style={{ margin: '4px 0 0' }}>
+              点击<Button size="small" icon={<EditOutlined />}>设计</Button>进入模板设计器，可拖拽添加字段、调整布局。
+            </p>
+          </div>
+          <div style={{ margin: '0 0 16px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
+            <Text strong>预览</Text>
+            <p style={{ margin: '4px 0 0' }}>
+              点击<Button size="small" icon={<EyeOutlined />}>预览</Button>查看标签设计稿的实际效果（吊牌/贴纸/洗麦）。
+            </p>
+          </div>
+          <div style={{ margin: '0 0 16px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
+            <Text strong>编辑</Text>
+            <p style={{ margin: '4px 0 0' }}>
+              点击<Button size="small" icon={<EditOutlined />}>编辑</Button>修改模板名称和标签类型。
+            </p>
+          </div>
+          <div style={{ margin: '0 0 16px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
+            <Text strong>复制</Text>
+            <p style={{ margin: '4px 0 0' }}>
+              点击<Button size="small" icon={<CopyOutlined />}>复制</Button>复制当前模板，生成新版本。
+            </p>
+          </div>
+          <div style={{ margin: '0 0 16px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
+            <Text strong>删除</Text>
+            <p style={{ margin: '4px 0 0' }}>
+              仅未被订单引用的模板可以删除。点击<Button size="small" danger icon={<DeleteOutlined />}>删除</Button>确认即可。
+            </p>
+          </div>
+          <Text strong style={{ fontSize: 15 }}>三、模板下单 vs 即时下单</Text>
+          <div style={{ margin: '12px 0 16px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
+            <Text strong>模板下单</Text>
+            <p style={{ margin: '4px 0 0' }}>
+              在订单创建页面选择已有模板，系统自动填入模板定义的字段，只需填写 SKU 和数量。
+            </p>
+          </div>
+          <div style={{ margin: '0 0 20px', padding: '10px 14px', background: token.colorFillQuaternary, borderRadius: 6 }}>
+            <Text strong>即时下单</Text>
+            <p style={{ margin: '4px 0 0' }}>
+              不依赖模板，直接在订单创建页面填写 SKU 和数量，模板可后续在订单详情中补齐。
+            </p>
+          </div>
+        </div>
       </Modal>
     </div>
   );

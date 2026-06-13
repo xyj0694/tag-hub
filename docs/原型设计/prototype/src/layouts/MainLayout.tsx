@@ -80,7 +80,6 @@ export default function MainLayout({ role, roleName, brands, currentBrandId, all
         },
         { key: '/brand/templates', icon: <AppstoreOutlined />, label: t('nav.templates') },
         { key: '/brand/factories', icon: <TeamOutlined />, label: t('nav.factories') },
-        { key: '/brand/data-import', icon: <UploadOutlined />, label: '唯一码导入' },
         { key: '/brand/billings', icon: <DollarOutlined />, label: t('nav.billings') },
       ],
       ops: [
@@ -101,6 +100,18 @@ export default function MainLayout({ role, roleName, brands, currentBrandId, all
         { key: '/ops/suppliers', icon: <TeamOutlined />, label: t('nav.suppliers') },
         { key: '/ops/epc-rules', icon: <SettingOutlined />, label: t('nav.epcRules') },
         { key: '/ops/supplier-review', icon: <SafetyCertificateOutlined />, label: '供应商数据审核' },
+        { type: 'divider' },
+        {
+          key: 'config-group',
+          icon: <SettingOutlined />,
+          label: '配置管理',
+          children: [
+            { key: '/ops/config/system', label: '系统配置' },
+            { key: '/ops/config/business', label: '业务配置' },
+            { key: '/ops/config/brand', label: '品牌方配置' },
+            { key: '/ops/config/supplier', label: '供应商配置' },
+          ],
+        },
         { key: '/ops/billings', icon: <DollarOutlined />, label: t('nav.supplierBillings') },
       ],
       supplier: [

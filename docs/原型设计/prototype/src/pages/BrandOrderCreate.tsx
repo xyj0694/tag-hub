@@ -1,12 +1,12 @@
 import { useState, useMemo, useCallback, memo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Card, Steps, Select, Button, Table, Input, InputNumber, Alert, Form, Typography, Space, message,
+  Card, Steps, Select, Button, Table, Input, InputNumber, Alert, Form, Typography, Space, message, Upload,
   Cascader, Tag, Radio, AutoComplete, Popover, Descriptions, Divider, Modal,
 } from 'antd';
 import {
   PlusOutlined, DeleteOutlined, ArrowLeftOutlined, FileExcelOutlined,
-  FileTextOutlined, ThunderboltOutlined, InfoCircleOutlined, DownloadOutlined, ExclamationCircleOutlined,
+  FileTextOutlined, ThunderboltOutlined, InfoCircleOutlined, DownloadOutlined, ExclamationCircleOutlined, InboxOutlined, UploadOutlined, CheckCircleOutlined,
 } from '@ant-design/icons';
 import { templates, orders, productCatalog } from '../data/mock';
 import { regionData } from '../data/regions';
@@ -122,7 +122,6 @@ const TemplateMatchCell = memo(function TemplateMatchCell({
   if (!sku) return <Text type="secondary" style={{ fontSize: 12 }}>—</Text>;
   const t = templateId ? availableTemplates.find(t => t.id === templateId) : null;
   if (!t) return <Tag color="red">无可用模板</Tag>;
-
 
   const openModal = () => {
     setPopoverOpen(false);
@@ -241,6 +240,8 @@ export default function BrandOrderCreate() {
   const [addressDetail, setAddressDetail] = useState('');
   const [contactName, setContactName] = useState('');
   const [contactPhone, setContactPhone] = useState('');
+  const [epcPreview, setEpcPreview] = useState<{key:number; epc:string; valid:boolean}[]>([]);
+  const [showEpcGuide, setShowEpcGuide] = useState(false);
 
   // sync ref → state for validation
   const syncRows = useCallback(() => {
@@ -318,14 +319,34 @@ export default function BrandOrderCreate() {
     setCreatePath(null); setCurrent(0); setTagType(undefined); setOrderType('NORMAL');
     skuRowsRef.current = []; setSkuRows([]); setManualOverrides({});
     setRegionPath([]); setAddressDetail(''); setContactName(''); setContactPhone('');
-    setImportedCount(0); setImportVersion(v => v + 1);
+    setEpcPreview([]); setImportedCount(0); setImportVersion(v => v + 1);
+  };
+
+
+  const handleEpcUpload = (file: File) => {
+    const isAccepted = file.name.endsWith('.xlsx') || file.name.endsWith('.csv')
+      || file.name.endsWith('.txt');
+    if (!isAccepted) {
+      message.error('仅支持 .xlsx / .csv / .txt 格式');
+      return false;
+    }
+    const totalQty = skuRows.reduce((s, r) => s + (r.quantity || 0), 0);
+    const mockEpcData = Array.from({ length: totalQty }, (_, i) => ({
+      key: i + 1,
+      epc: `3034ABC${String(i + 1).padStart(8, '0')}`,
+      valid: true,
+    }));
+    setEpcPreview(mockEpcData);
+    message.success(`已解析 ${totalQty.toLocaleString()} 条唯一码（模拟）`);
+    return false;
   };
 
   const handleSubmit = () => {
+    const epcInfo = dataSource === 'customer' ? `，已关联 ${epcPreview.length.toLocaleString()} 条唯一码` : '';
     message.success(
       createPath === 'template'
-        ? '订单已提交！状态：待审核，平台运营将尽快处理。'
-        : '订单已提交！状态：待补模板，请通知打单员为 SKU 创建标签模板。'
+        ? `订单已提交！状态：待审核，平台运营将尽快处理。${epcInfo}`
+        : `订单已提交！状态：待补模板，请通知打单员为 SKU 创建标签模板。${epcInfo}`
     );
     setTimeout(() => navigate('/brand/orders'), 1500);
   };
@@ -348,8 +369,6 @@ export default function BrandOrderCreate() {
   if (!createPath) {
     return (
       <div style={{ maxWidth: 720 }}>
-        <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}
-          style={{ padding: '4px 0', marginBottom: 24, color: '#666' }}>返回</Button>
         <Title level={4} style={{ marginBottom: 8 }}>创建订单</Title>
         <Text type="secondary" style={{ display: 'block', marginBottom: 24 }}>请选择下单方式</Text>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
@@ -599,6 +618,7 @@ export default function BrandOrderCreate() {
                 <Input placeholder="手机号" value={contactPhone} onChange={e => setContactPhone(e.target.value)} />
               </Form.Item>
             </Form>
+            <Button onClick={prev} size="large" style={{ marginTop: 16 }}>上一步</Button>
           </div>
           <div>
             <Text strong style={{ display: 'block', marginBottom: 16, fontSize: 15 }}>订单摘要</Text>
@@ -652,12 +672,130 @@ export default function BrandOrderCreate() {
                   <Radio.Button value="customer">客户自导</Radio.Button>
                 </Radio.Group>
                 {dataSource === 'customer' && (
-                  <Alert type="warning" showIcon style={{ marginTop: 8 }}
-                    title="选择「客户自导」后，请在「唯一码导入」页面上传数据。" />
+                  <div style={{ marginTop: 12 }}>
+                    {epcPreview.length === 0 ? (
+                      <div>
+                        <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+                          <Button size="small" icon={<DownloadOutlined />}
+                            onClick={() => message.success('唯一码导入模板.xlsx 已开始下载（模拟）')}>
+                            下载 Excel 模板
+                          </Button>
+                          <Button size="small" type="link" icon={<FileTextOutlined />}
+                            onClick={() => setShowEpcGuide(!showEpcGuide)}>
+                            {showEpcGuide ? '收起' : '展开'} 填写说明与校验规则
+                          </Button>
+                          <Text type="secondary" style={{ fontSize: 11 }}>
+                            上传前请先下载模板，按格式填写唯一码数据
+                          </Text>
+                        </div>
+
+                        {showEpcGuide && (
+                          <div style={{
+                            background: '#fafafa', borderRadius: 8, padding: '12px 16px', marginBottom: 12,
+                            border: '1px solid #f0f0f0', fontSize: 12, lineHeight: 1.9,
+                            maxHeight: 260, overflow: 'auto'
+                          }}>
+                            <Text strong style={{ fontSize: 13 }}>📋 模板格式</Text>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', margin: '8px 0 12px', fontFamily: 'monospace', fontSize: 11 }}>
+                              <thead>
+                                <tr style={{ background: '#e6f7ff' }}>
+                                  <th style={{ padding: '3px 8px', border: '1px solid #d9d9d9', textAlign: 'left' }}>A</th>
+                                  <th style={{ padding: '3px 8px', border: '1px solid #d9d9d9', textAlign: 'left' }}>B</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr style={{ background: '#fff' }}>
+                                  <td style={{ padding: '3px 8px', border: '1px solid #f0f0f0', fontWeight: 600 }}>唯一码（EPC）</td>
+                                  <td style={{ padding: '3px 8px', border: '1px solid #f0f0f0', fontWeight: 600 }}>关联 SKU</td>
+                                </tr>
+                                <tr><td style={{ padding: '3px 8px', border: '1px solid #f0f0f0', color: '#52c41a' }}>3034ABC000000001</td><td style={{ padding: '3px 8px', border: '1px solid #f0f0f0', color: '#52c41a' }}>BSD-SS25-TEE-001</td></tr>
+                                <tr><td style={{ padding: '3px 8px', border: '1px solid #f0f0f0', color: '#52c41a' }}>3034ABC000000002</td><td style={{ padding: '3px 8px', border: '1px solid #f0f0f0', color: '#52c41a' }}>BSD-SS25-TEE-001</td></tr>
+                                <tr><td style={{ padding: '3px 8px', border: '1px solid #f0f0f0', color: '#52c41a' }}>3034ABC000080001</td><td style={{ padding: '3px 8px', border: '1px solid #f0f0f0', color: '#52c41a' }}>BSD-SS25-TEE-002</td></tr>
+                              </tbody>
+                            </table>
+
+                            <Text strong style={{ fontSize: 13 }}>📝 填写说明</Text>
+                            <ol style={{ margin: '4px 0 10px', paddingLeft: 18 }}>
+                              <li>第一行为表头，<Text code style={{ fontSize: 11 }}>唯一码（EPC）</Text>和<Text code style={{ fontSize: 11 }}>关联 SKU</Text>列名不可修改</li>
+                              <li>唯一码为纯数字或大写字母+数字组合，不含特殊字符</li>
+                              <li>关联 SKU 必须与本订单中的 SKU 完全一致（含大小写）</li>
+                              <li>文件格式仅支持 <Text code style={{ fontSize: 11 }}>.xlsx</Text></li>
+                            </ol>
+
+                            <Text strong style={{ fontSize: 13, color: '#ff4d4f' }}>⚠ 校验规则</Text>
+                            <ol style={{ margin: '4px 0 10px', paddingLeft: 18 }}>
+                              <li><Text strong>唯一性校验</Text>：导入的唯一码不可与系统已有编码重复，重复行将被标记异常</li>
+                              <li><Text strong>数量校验</Text>：每个 SKU 的编码数量必须与订单中的数量一致，多了或少了都会提示</li>
+                              <li><Text strong>SKU 校验</Text>：关联 SKU 必须在订单 SKU 列表中，不存在的 SKU 将被标记异常</li>
+                              <li><Text strong>格式校验</Text>：编码含特殊字符、空行、非数字字母字符均视为格式错误</li>
+                            </ol>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 8 }}>
+                              <div>
+                                <Text strong style={{ fontSize: 12, color: '#52c41a' }}>✅ 正确示例</Text>
+                                <div style={{ background: '#f6ffed', borderRadius: 4, padding: '6px 10px', marginTop: 4, fontFamily: 'monospace', fontSize: 11 }}>
+                                  3034ABC000000001&emsp;BSD-SS25-TEE-001<br />
+                                  3034ABC000080001&emsp;BSD-SS25-TEE-002
+                                </div>
+                              </div>
+                              <div>
+                                <Text strong style={{ fontSize: 12, color: '#ff4d4f' }}>❌ 常见错误</Text>
+                                <div style={{ background: '#fff2f0', borderRadius: 4, padding: '6px 10px', marginTop: 4, fontFamily: 'monospace', fontSize: 11 }}>
+                                  <span style={{ color: '#ff4d4f' }}>3034ABC-00001&emsp;→ 含特殊字符</span><br />
+                                  <span style={{ color: '#ff4d4f' }}>3034ABC000000001&emsp;→ 与已有编码重复</span><br />
+                                  <span style={{ color: '#ff4d4f' }}>bsd-ss25-tee-001&emsp;→ SKU 大小写不一致</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        <Upload.Dragger
+                          accept=".xlsx,.csv,.txt"
+                          showUploadList={false}
+                          beforeUpload={handleEpcUpload}
+                          style={{ padding: '16px 0' }}
+                        >
+                          <p className="ant-upload-drag-icon"><InboxOutlined style={{ fontSize: 32, color: '#1677ff' }} /></p>
+                          <p className="ant-upload-text" style={{ fontSize: 13 }}>点击或拖拽唯一码数据文件</p>
+                          <p className="ant-upload-hint" style={{ fontSize: 12 }}>
+                            支持 .xlsx / .csv / .txt，单文件 ≤ 200MB
+                          </p>
+                        </Upload.Dragger>
+                      </div>
+                    ) : (
+                      <div style={{ background: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: 6, padding: 12 }}>
+                        <Space>
+                          <CheckCircleOutlined style={{ color: '#52c41a', fontSize: 16 }} />
+                          <Text strong style={{ color: '#52c41a' }}>
+                            已上传 {epcPreview.length.toLocaleString()} 条唯一码，校验通过
+                          </Text>
+                          <Button size="small" onClick={() => setEpcPreview([])}>重新上传</Button>
+                        </Space>
+                        <Table
+                          dataSource={epcPreview.slice(0, 5)}
+                          rowKey="key"
+                          size="small"
+                          pagination={false}
+                          style={{ marginTop: 8 }}
+                          columns={[
+                            { title: '#', dataIndex: 'key', width: 50 },
+                            { title: '唯一码', dataIndex: 'epc', width: 200, render: (v: string) => <Text code style={{ fontSize: 11 }}>{v}</Text> },
+                            { title: '校验', dataIndex: 'valid', width: 70, render: (v: boolean) => v ? <Tag color="success">有效</Tag> : <Tag color="error">异常</Tag> },
+                          ]}
+                        />
+                        {epcPreview.length > 5 && (
+                          <Text type="secondary" style={{ fontSize: 11, marginTop: 4, display: 'block' }}>
+                            ... 还有 {epcPreview.length - 5} 条，提交后将全部关联到本订单
+                          </Text>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
               <Alert type="info" showIcon title="提交后订单状态为「待审核」"
-                description="平台运营人员将尽快审核您的订单。" style={{ marginTop: 16, borderRadius: 6 }} />
+                description="系统已经通知供应商尽快审核和确认接单反馈。" style={{ marginTop: 16, borderRadius: 6 }} />
             </>
             )}
             <Button type="primary" size="large" block style={{ marginTop: 20 }}
@@ -665,7 +803,8 @@ export default function BrandOrderCreate() {
               disabled={
                 regionPath.length === 0 || !addressDetail || !contactName || !contactPhone ||
                 skuRows.length === 0 || skuRows.some(r => !r.sku || !r.quantity) ||
-                (createPath === 'template' && skuRows.some((_, i) => !effectiveTemplate(i)))
+                (createPath === 'template' && skuRows.some((_, i) => !effectiveTemplate(i))) ||
+                (dataSource === 'customer' && epcPreview.length === 0)
               }>
               {createPath === 'template' ? '确认提交订单' : '提交订单（待补模板）'}
             </Button>
@@ -707,6 +846,7 @@ export default function BrandOrderCreate() {
           <Button type="primary" onClick={next} disabled={!canNext()}>下一步</Button>
         </div>
       )}
+
     </div>
   );
 }

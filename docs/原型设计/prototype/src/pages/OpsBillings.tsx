@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import dayjs from 'dayjs';
 import {
   Card, Table, Button, Tag, DatePicker, Space, Typography, Select, Segmented, Modal,
   Popconfirm, Popover, Alert, message, theme, Tooltip
@@ -28,6 +29,7 @@ export default function OpsBillings() {
   const [supplierFilter, setSupplierFilter] = useState<string>('all');
   const [brandFilter, setBrandFilter] = useState<string>('all');
   const [dateRange, setDateRange] = useState<any>(null);
+  const [settlementModeFilter, setSettlementModeFilter] = useState<string>('all');
   const [detailOpen, setDetailOpen] = useState<BillingItem | null>(null);
   const [dimension, setDimension] = useState<string>('supplier');
   const [previewFile, setPreviewFile] = useState<{ name: string; type: 'image' | 'pdf' } | null>(null);
@@ -47,6 +49,7 @@ export default function OpsBillings() {
   const filtered = useMemo(() => {
     let list = [...billings];
     if (statusFilter !== 'all') list = list.filter(b => b.status === statusFilter);
+    if (settlementModeFilter !== 'all') list = list.filter(b => (b.settlementMode || 'monthly') === settlementModeFilter);
     if (supplierFilter !== 'all') list = list.filter(b => b.dimensionName === supplierFilter);
     if (brandFilter !== 'all') list = list.filter(b => b.brandName === brandFilter);
     if (dateRange && dateRange[0] && dateRange[1]) {
@@ -64,7 +67,7 @@ export default function OpsBillings() {
       return bEnd.localeCompare(aEnd);
     });
     return list;
-  }, [billings, statusFilter, supplierFilter, brandFilter, dateRange]);
+  }, [billings, statusFilter, supplierFilter, brandFilter, dateRange, settlementModeFilter]);
 
   const totalAmount = filtered.reduce((s, b) => s + b.totalAmount, 0);
   const overdueAmount = filtered.filter(b => b.overdue).reduce((s, b) => s + b.totalAmount, 0);
@@ -188,6 +191,18 @@ export default function OpsBillings() {
             ]}
           />
           <Select
+            placeholder="结算周期"
+            style={{ width: 120 }}
+            value={settlementModeFilter}
+            onChange={setSettlementModeFilter}
+            options={[
+              { value: 'all', label: '全部周期' },
+              { value: 'monthly', label: '月结' },
+              { value: 'quarterly', label: '季结' },
+              { value: 'custom', label: '自定义' },
+            ]}
+          />
+          <Select
             placeholder="全部供应商"
             style={{ width: 200 }}
             value={supplierFilter}
@@ -204,7 +219,7 @@ export default function OpsBillings() {
             options={brandOptions}
           />
           <RangePicker placeholder={['账期 从', '到']} value={dateRange} onChange={v => setDateRange(v as any)} />
-          <Button onClick={() => { setStatusFilter('all'); setSupplierFilter('all'); setBrandFilter('all'); setDateRange(null); }}>重置筛选</Button>
+          <Button onClick={() => { setStatusFilter('all'); setSupplierFilter('all'); setBrandFilter('all'); setDateRange(null); setSettlementModeFilter('all'); }}>重置筛选</Button>
         </Space>
 
         {/* 汇总卡片 */}
@@ -259,7 +274,15 @@ export default function OpsBillings() {
               },
               { title: '供应商', dataIndex: 'dimensionName', width: 180, ellipsis: true, render: (t: string) => <Text strong>{t}</Text> },
               { title: '品牌方', dataIndex: 'brandName', width: 140, render: (t: string) => <Tag color="blue">{t}</Tag> },
-              { title: '账期', dataIndex: 'period', width: 220 },
+              { title: '账期', dataIndex: 'period', width: 200 },
+              {
+                title: '结算周期', dataIndex: 'settlementMode', width: 90,
+                render: (m: string | undefined) => {
+                  const map: Record<string, { color: string; text: string }> = { monthly: { color: 'blue', text: '月结' }, quarterly: { color: 'purple', text: '季结' }, custom: { color: 'orange', text: '自定义' } };
+                  const info = map[m || 'monthly'] || { color: 'default', text: m || '月结' };
+                  return <Tag color={info.color}>{info.text}</Tag>;
+                },
+              },
               {
                 title: '总金额', dataIndex: 'totalAmount', width: 130,
                 render: (v: number) => <Text strong style={{ fontVariantNumeric: 'tabular-nums' }}>¥{v.toLocaleString()}.00</Text>,
@@ -273,10 +296,25 @@ export default function OpsBillings() {
                 },
               },
               {
-                title: '付款到期日', dataIndex: 'paymentDueDate', width: 110,
-                render: (d: string, r: BillingItem) => (
-                  <Text type={r.overdue ? 'danger' : 'secondary'}>{d}</Text>
-                ),
+                title: '付款到期日', dataIndex: 'paymentDueDate', width: 130,
+                render: (d: string, r: BillingItem) => {
+                  if (d === '—') return <Text type="secondary">—</Text>;
+                  const due = dayjs(d);
+                  const now = dayjs();
+                  const daysLeft = due.diff(now, 'day');
+                  const isOverdue = r.overdue;
+                  return (
+                    <span>
+                      <Text type={isOverdue ? 'danger' : 'secondary'}>{d}</Text>
+                      {!isOverdue && r.status === '已确认' && daysLeft >= 0 && (
+                        <Text type="warning" style={{ fontSize: 11, display: 'block' }}>距到期 {daysLeft} 天</Text>
+                      )}
+                      {isOverdue && (
+                        <Text type="danger" style={{ fontSize: 11, display: 'block' }}>已逾期 {Math.abs(daysLeft)} 天</Text>
+                      )}
+                    </span>
+                  );
+                },
               },
               {
                 title: '发票', dataIndex: 'invoiceUploaded', width: 70,
@@ -364,6 +402,16 @@ export default function OpsBillings() {
                   <div>
                     <Text type="secondary" style={{ fontSize: 12 }}>账期</Text>
                     <br /><Text strong>{detailOpen.period}</Text>
+                  </div>
+                  <div>
+                    <Text type="secondary" style={{ fontSize: 12 }}>生成时间</Text>
+                    <br /><Text>{detailOpen.generatedAt || '—'}</Text>
+                  </div>
+                  <div>
+                    <Text type="secondary" style={{ fontSize: 12 }}>结算方式</Text>
+                    <br /><Tag color={{ monthly: 'blue', quarterly: 'purple', custom: 'orange' }[detailOpen.settlementMode || 'monthly'] || 'default'}>
+                      {{ monthly: '月结', quarterly: '季结', custom: '自定义' }[detailOpen.settlementMode || 'monthly'] || detailOpen.settlementMode}
+                    </Tag>
                   </div>
                   <div>
                     <Text type="secondary" style={{ fontSize: 12 }}>状态</Text>
